@@ -66,6 +66,8 @@ Backup format changes need separate consideration from SQLite schema changes. Th
 
 ## Self-contained publish and installer
 
+For a command summary and the internal release procedure, see the [deployment guide](deployment.md).
+
 ```powershell
 dotnet publish SlotCast.csproj -p:PublishProfile=WindowsSelfContained
 ```

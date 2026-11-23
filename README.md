@@ -92,6 +92,7 @@ See the [user guide](docs/user-guide.md) for calendar behavior, completion rules
 - [Using SlotCast](docs/user-guide.md)
 - [Configuration and credentials](docs/configuration.md)
 - [Development, architecture, and packaging](docs/development.md)
+- [Internal deployment guide and command summary](docs/deployment.md)
 
 ## Data sources
 
