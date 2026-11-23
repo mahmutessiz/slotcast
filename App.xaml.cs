@@ -6,7 +6,6 @@ using episodeTracker.Views.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.IO;
 using System.Reflection;
 using System.Windows.Threading;
 using Wpf.Ui;
@@ -26,7 +25,7 @@ namespace episodeTracker
         // https://docs.microsoft.com/dotnet/core/extensions/logging
         private static readonly IHost _host = Host
             .CreateDefaultBuilder()
-            .ConfigureAppConfiguration(c => { c.SetBasePath(Path.GetDirectoryName(AppContext.BaseDirectory)); })
+            .ConfigureAppConfiguration(c => { c.SetBasePath(AppContext.BaseDirectory); })
             .ConfigureServices((context, services) =>
             {
                 services.AddNavigationViewPageProvider();
@@ -53,20 +52,21 @@ namespace episodeTracker
                 services.AddSingleton<SettingsPage>();
                 services.AddSingleton<SettingsViewModel>();
 
-                services.AddHttpClient("EpisodesApi", client =>
+                services.AddHttpClient("Simkl", client =>
                 {
-                    client.BaseAddress = new Uri("https://api.example.com/");
+                    client.BaseAddress = new Uri("https://api.simkl.com/");
                     client.Timeout = TimeSpan.FromSeconds(30);
                 
-                    var apiKey = context.Configuration["EpisodesApi:ApiKey"];
+                    var apiKey = context.Configuration["Simkl:ClientId"];
                 
                     if (string.IsNullOrWhiteSpace(apiKey))
-                        throw new InvalidOperationException("The API key is missing.");
+                        throw new InvalidOperationException("SIMKL Client ID is missing.");
                 
-                    client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                    client.DefaultRequestHeaders.Add("simkl-api-key", apiKey);
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("episode-tracker/1.0");
                 });
                 
-                services.AddSingleton<EpisodeApiService>();
+                services.AddSingleton<SimklService>();
             }).Build();
 
         /// <summary>
