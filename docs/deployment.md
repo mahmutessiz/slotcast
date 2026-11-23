@@ -117,7 +117,7 @@ To recover, retain the JSON backup and use a compatible build. Do not assume an 
 
 ## Release handoff
 
-Share the installer, its matching checksum, configuration instructions, and the corresponding source revision. Keep private tokens, local databases, and personal JSON backups out of release attachments. For public redistribution, retain the GPL license and provide the corresponding source under the project's license; see [LICENSE](../LICENSE).
+Share the installer, configuration instructions, and the corresponding source revision. The matching checksum is optional for clients running 1.0.6 or later. Keep private tokens, local databases, and personal JSON backups out of release attachments. For public redistribution, retain the GPL license and provide the corresponding source under the project's license; see [LICENSE](../LICENSE).
 
 `artifacts/` is ignored by Git. Building an installer does not commit, push, create a GitHub release, or upload attachments. Those are separate release actions.
 
@@ -131,17 +131,19 @@ To distribute the next update (for example, 1.0.4):
 .\scripts\build-installer.ps1 -Version 1.0.4
 ```
 
-Create a published, non-prerelease GitHub release at https://github.com/mahmutessiz/slotcast/releases/new with tag `v1.0.4` (or `1.0.4`). Attach BOTH generated files, keeping their names unchanged:
+Create a published, non-prerelease GitHub release at https://github.com/mahmutessiz/slotcast/releases/new with tag `v1.0.4` (or `1.0.4`). Attach the generated installer, keeping its name unchanged. The generated checksum file is optional:
 
 - `SlotCast-Setup-1.0.4-win-x64.exe`
-- `SlotCast-Setup-1.0.4-win-x64.exe.sha256`
+- Optional: `SlotCast-Setup-1.0.4-win-x64.exe.sha256` (not used by the updater in 1.0.6 and later)
 
 Mark it as the latest stable release. A Git tag alone, a draft, or GitHub's automatic source ZIP is not an installable update. Version tags must be numeric `major.minor.patch` with an optional fourth numeric component; prerelease tags are skipped. The tag's numeric version must match the installer filename and build version. Do not prefix the installer filename with `v`.
 
-The updater compares numeric versions, ignores older/equal versions, validates asset addresses against this repository, checks download length and SHA-256, and launches the verified Inno Setup installer. The user sees download progress in Settings. The installer runs with a progress window, keeps the current application directory, and restarts SlotCast after completion when launched by the updater. It does not request a Windows reboot. SQLite data and local config are retained.
+The updater compares numeric versions, ignores older/equal versions, validates asset addresses against this repository, checks download length, and launches the Inno Setup installer without requesting a checksum file. The user sees download progress in Settings. The installer runs with a progress window, keeps the current application directory, and restarts SlotCast after completion when launched by the updater. It does not request a Windows reboot. SQLite data and local config are retained.
 
-Download/checksum failures leave the running app in place and report a status in Settings. Startup network errors do not display an interruption dialog. GitHub rate limits can delay checks. Downloads are staged in a unique folder under `%TEMP%\SlotCast-Updates` and limited to 300 MB with a five-minute download deadline. Completed installer files can remain there after an update; close any installer before removing old download folders.
+Download failures leave the running app in place and report a status in Settings. Startup network errors do not display an interruption dialog. GitHub rate limits can delay checks. Downloads are staged in a unique folder under `%TEMP%\SlotCast-Updates` and limited to 300 MB with a five-minute download deadline. Completed installer files can remain there after an update; close any installer before removing old download folders.
 
-The first build containing the updater must be installed manually; older builds cannot gain this feature until upgraded. Smoke checks verify release parsing, version comparison, allowed download addresses, valid downloads, and rejection of corrupted or incomplete files without executing an installer. Test an actual update between two builds on a separate Windows account/VM before public rollout.
+The first build containing the updater must be installed manually; older builds cannot gain this feature until upgraded. Smoke checks verify release parsing, version comparison, allowed download addresses, valid downloads, and rejection of incomplete files without executing an installer. Test an actual update between two builds on a separate Windows account/VM before public rollout.
 
 See the official [GitHub Releases API](https://docs.github.com/en/rest/releases/releases#get-the-latest-release) and [Inno Setup command-line reference](https://jrsoftware.org/ishelp/topic_setupcmdline.htm) for the upstream update protocol and installer switches.
+
+Checksum-free updates are supported starting with SlotCast 1.0.6. Older updater builds still require the checksum attachment, so retain it on releases used to upgrade those clients. After installing 1.0.6, installer-only releases are supported.

@@ -9,7 +9,7 @@ A Windows desktop app for discovering TV anime, following weekly airing schedule
 - **Release options:** English subtitles, Japanese broadcasts, and English dubs.
 - **Discover:** search TV anime and open details inside the app. OVAs and other non-TV formats are excluded.
 - **Watching and Archive:** track individual episodes, mark a series completed, and automatically archive titles when all known episodes are watched.
-- **Updates:** checks stable GitHub releases at startup and downloads a verified Windows installer when you choose to update.
+- **Updates:** checks stable GitHub releases at startup and downloads the Windows installer when you choose to update.
 - **Local storage:** your library and progress stay on your PC and survive app updates.
 - **JSON backups:** export your library and merge it onto another PC without losing existing progress.
 - **Flat UI:** dark and light themes, wrapped poster cards, and no gradients.

@@ -43,7 +43,7 @@ public partial class UpdatesViewModel(AppUpdateService service) : ObservableObje
         if (IsBusy || _available is null) return;
         IsBusy = true;
         DownloadProgress = 0;
-        Status = "Downloading and verifying the update…";
+        Status = "Downloading the update…";
         try
         {
             var installer = await service.DownloadAsync(_available, new Progress<double>(value => DownloadProgress = value));

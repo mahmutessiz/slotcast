@@ -1,14 +1,14 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
-using System.Security.Cryptography;
+
+
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace SlotCast.Services;
 
-public sealed record AppUpdate(string Version, Uri InstallerUrl, Uri ChecksumUrl, long Size);
+public sealed record AppUpdate(string Version, Uri InstallerUrl, long Size);
 
 public sealed class AppUpdateService(IHttpClientFactory clients)
 {
@@ -35,22 +35,21 @@ public sealed class AppUpdateService(IHttpClientFactory clients)
         static Version Normalize(Version v) => new(v.Major, v.Minor, Math.Max(v.Build, 0), Math.Max(v.Revision, 0));
         if (Normalize(version) <= Normalize(installed)) return null;
         var name = $"SlotCast-Setup-{versionText}-win-x64.exe";
-        Uri? installer = null, checksum = null;
+        Uri? installer = null;
         long size = 0;
         foreach (var asset in release.GetProperty("assets").EnumerateArray())
         {
             var assetName = asset.GetProperty("name").GetString();
-            if (assetName != name && assetName != name + ".sha256") continue;
+            if (assetName != name) continue;
             if (!Uri.TryCreate(asset.GetProperty("browser_download_url").GetString(), UriKind.Absolute, out var url)
                 || url.Scheme != "https" || url.Host != "github.com" || !string.IsNullOrEmpty(url.UserInfo)
                 || !url.AbsolutePath.StartsWith($"/{Repository}/releases/download/", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException("The release has an unexpected download address.");
-            if (assetName == name) { installer = url; size = asset.GetProperty("size").GetInt64(); }
-            else checksum = url;
+            installer = url; size = asset.GetProperty("size").GetInt64();
         }
-        if (installer is null || checksum is null || size <= 0 || size > MaxInstallerSize)
-            throw new InvalidDataException("The latest release needs its Windows x64 installer and matching .sha256 attachment.");
-        return new AppUpdate(versionText, installer, checksum, size);
+        if (installer is null || size <= 0 || size > MaxInstallerSize)
+            throw new InvalidDataException("The latest release needs its Windows x64 installer attachment.");
+        return new AppUpdate(versionText, installer, size);
     }
 
     public async Task<string> DownloadAsync(AppUpdate update, IProgress<double>? progress = null, CancellationToken ct = default)
@@ -59,22 +58,7 @@ public sealed class AppUpdateService(IHttpClientFactory clients)
         timeout.CancelAfter(TimeSpan.FromMinutes(5));
         ct = timeout.Token;
         using var client = clients.CreateClient("GitHubUpdates");
-        using var checksumResponse = await client.GetAsync(update.ChecksumUrl, HttpCompletionOption.ResponseHeadersRead, ct);
-        checksumResponse.EnsureSuccessStatusCode();
-        await using var checksumStream = await checksumResponse.Content.ReadAsStreamAsync(ct);
-        var checksumBytes = new byte[4097];
-        var checksumLength = 0;
-        while (checksumLength < checksumBytes.Length)
-        {
-            var n = await checksumStream.ReadAsync(checksumBytes.AsMemory(checksumLength), ct);
-            if (n == 0) break;
-            checksumLength += n;
-        }
-        if (checksumLength > 4096) throw new InvalidDataException("The release checksum file is invalid.");
-        var text = System.Text.Encoding.UTF8.GetString(checksumBytes, 0, checksumLength).Trim();
-        var match = Regex.Match(text, @"\A([a-fA-F0-9]{64})\s+\*?([^\r\n]+)\z");
         var fileName = $"SlotCast-Setup-{update.Version}-win-x64.exe";
-        if (!match.Success || match.Groups[2].Value != fileName) throw new InvalidDataException("The release checksum does not match the installer name.");
         var folder = Path.Combine(Path.GetTempPath(), "SlotCast-Updates", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
         var partial = Path.Combine(folder, fileName + ".partial");
@@ -97,12 +81,6 @@ public sealed class AppUpdateService(IHttpClientFactory clients)
                     progress?.Report(100d * total / update.Size);
                 }
                 if (total != update.Size) throw new InvalidDataException("The installer download is incomplete.");
-            }
-            await using (var file = File.OpenRead(partial))
-            {
-                var actual = await SHA256.HashDataAsync(file, ct);
-                if (!CryptographicOperations.FixedTimeEquals(actual, Convert.FromHexString(match.Groups[1].Value)))
-                    throw new InvalidDataException("Installer verification failed. No update was installed.");
             }
             File.Move(partial, destination);
             return destination;

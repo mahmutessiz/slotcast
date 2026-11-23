@@ -66,7 +66,7 @@ The stable database location is `%LOCALAPPDATA%\SlotCast\slotcast.db`. It is ind
 
 SlotCast checks public releases from `mahmutessiz/slotcast` at startup. When a newer stable version is available, accept the prompt to download and install it, or choose No to continue. You can also use **Settings > Check for updates**, then **Download & install**. No GitHub sign-in is required.
 
-The installer download is verified before launch. SlotCast closes for installation and then restarts; your library and local configuration are kept. A network or verification failure leaves the installed app in place. Updates need internet access and a published release containing the Windows x64 installer and checksum. Older builds without updater support need one manual upgrade first.
+The installer is downloaded over HTTPS, and its size is checked before launch. A checksum attachment is not required. SlotCast closes for installation and then restarts; your library and local configuration are kept. A network or incomplete-download failure leaves the installed app in place. Updates need internet access and a published release containing the Windows x64 installer. Older builds without updater support need one manual upgrade first.
 
 ## Troubleshooting
 
