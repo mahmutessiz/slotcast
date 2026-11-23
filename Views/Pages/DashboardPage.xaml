@@ -18,19 +18,31 @@
 >
   <Grid VerticalAlignment="Top">
         <StackPanel>
-            <ui:Button
-        Content="Load show"
-        Command="{Binding ViewModel.LoadShowCommand}"
-        Appearance="Primary" />
+        <ui:Button
+            Content="Load show"
+            Command="{Binding ViewModel.LoadShowCommand}"
+            Appearance="Primary" />
 
-            <TextBlock
-        Margin="0,12,0,0"
-        Text="{Binding ViewModel.ShowTitle}" />
+        <TextBlock
+            Margin="0,12,0,0"
+            Text="{Binding ViewModel.ShowTitle}" />
 
-            <TextBlock
-        Margin="0,8,0,0"
-        Text="{Binding ViewModel.ErrorMessage}"
-        TextWrapping="Wrap" />
+        <TextBlock
+            Margin="0,12,0,0"
+            TextWrapping="Wrap"
+            Text="{Binding ViewModel.ShowYear}" />
+
+        <TextBlock
+            Margin="0,12,0,0"
+            Width="600"
+            TextWrapping="Wrap"
+            HorizontalAlignment="Left"
+            Text="{Binding ViewModel.ShowOverview}" />
+
+        <TextBlock
+            Margin="0,8,0,0"
+            Text="{Binding ViewModel.ErrorMessage}"
+            TextWrapping="Wrap" />
         </StackPanel>
     </Grid>
 </Page>

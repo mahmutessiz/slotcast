@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace episodeTracker.Models
+﻿namespace episodeTracker.Models
 {
     public class SimklShow
     {

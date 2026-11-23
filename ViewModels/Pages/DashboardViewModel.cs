@@ -16,6 +16,12 @@ namespace episodeTracker.ViewModels.Pages
         private string _showTitle = "";
 
         [ObservableProperty]
+        private int? _showYear;
+
+        [ObservableProperty]
+        private string _showOverview = "";
+
+        [ObservableProperty]
         private string _errorMessage = "";
 
         [RelayCommand]
@@ -27,6 +33,8 @@ namespace episodeTracker.ViewModels.Pages
             {
                 var show = await _simkl.GetShowAsync(17465);
                 ShowTitle = show?.Title ?? "Show not found.";
+                ShowYear = show?.Year ?? 000;
+                ShowOverview = show?.Overview ?? "";
             }
             catch (HttpRequestException)
             {
