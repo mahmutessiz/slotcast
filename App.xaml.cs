@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace episodeTracker
 {
@@ -25,7 +26,12 @@ namespace episodeTracker
         // https://docs.microsoft.com/dotnet/core/extensions/logging
         private static readonly IHost _host = Host
             .CreateDefaultBuilder()
-            .ConfigureAppConfiguration(c => { c.SetBasePath(AppContext.BaseDirectory); })
+            .ConfigureAppConfiguration(c =>
+            {
+                c.SetBasePath(AppContext.BaseDirectory);
+                c.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false);
+                c.AddEnvironmentVariables();
+            })
             .ConfigureServices((context, services) =>
             {
                 services.AddNavigationViewPageProvider();
@@ -47,6 +53,14 @@ namespace episodeTracker
 
                 services.AddSingleton<DashboardPage>();
                 services.AddSingleton<DashboardViewModel>();
+                services.AddSingleton<HomeViewModel>();
+                services.AddSingleton<AnimeDetailsState>();
+                services.AddSingleton<AnimeDetailsNavigationService>();
+                services.AddSingleton<AnimeDetailsViewModel>();
+                services.AddSingleton<AnimeDetailsPage>();
+                services.AddSingleton<CalendarPage>();
+                services.AddSingleton<LibraryPage>();
+                services.AddSingleton<DiscoverPage>();
                 services.AddSingleton<DataPage>();
                 services.AddSingleton<DataViewModel>();
                 services.AddSingleton<SettingsPage>();
@@ -74,6 +88,24 @@ namespace episodeTracker
                 });
 
                 services.AddSingleton<SimklService>();
+
+                System.IO.Directory.CreateDirectory(SlotCastPaths.DataDirectory);
+                services.AddDbContextFactory<SlotCastDbContext>(options =>
+                    options.UseSqlite($"Data Source={SlotCastPaths.DatabaseFile}"));
+                services.AddSingleton<AnimeLibraryService>();
+                services.AddSingleton<WatchlistTransferService>();
+                services.AddSingleton<AnimeScheduleService>();
+                services.AddHttpClient("AnimeSchedule", client =>
+                {
+                    client.BaseAddress = new Uri("https://animeschedule.net/api/v3/");
+                    client.Timeout = TimeSpan.FromSeconds(20);
+                    var token = context.Configuration["AnimeScheduleApiToken"];
+                    if (string.IsNullOrWhiteSpace(token))
+                        throw new InvalidOperationException("Add AnimeScheduleApiToken to appsettings.local.json to search and refresh schedules.");
+                    client.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("SlotCast/1.0");
+                });
             }).Build();
 
         /// <summary>

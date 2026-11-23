@@ -51,6 +51,10 @@ project.fragment.lock.json
 .config/dotnet-tools.json
 
 # User secrets and local configuration
+appsettings.local.json
+*.db
+*.db-shm
+*.db-wal
 **/secrets.json
 *.local.json
 *.Development.json

@@ -1,0 +1,37 @@
+<Page x:Class="episodeTracker.Views.Pages.AnimeDetailsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Title="Anime details" ScrollViewer.CanContentScroll="False"
+      Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+    <Page.Resources><ResourceDictionary Source="AnimeStyles.xaml" /></Page.Resources>
+    <ScrollViewer x:Name="DetailsScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
+        <StackPanel Margin="0,12,16,24">
+            <ui:Button Content="‹ Back" Command="{Binding ViewModel.BackCommand}" Margin="0,0,0,20" />
+            <TextBlock Text="{Binding ViewModel.ErrorMessage}" Style="{StaticResource ErrorText}" />
+            <TextBlock Text="{Binding ViewModel.Workspace.ErrorMessage}" Style="{StaticResource ErrorText}" />
+            <TextBlock Text="{Binding ViewModel.ActionMessage}" Style="{StaticResource ErrorText}" Foreground="#8DADFF" />
+            <ProgressBar Height="3" IsIndeterminate="True" Visibility="{Binding ViewModel.IsBusy, Converter={StaticResource BoolVisibility}}" Margin="0,0,0,12" />
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="220" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Height="315" VerticalAlignment="Top">
+                    <Image Source="{Binding ViewModel.PosterUrl}" Stretch="Uniform" />
+                </Border>
+                <StackPanel Grid.Column="1" Margin="28,0,0,0">
+                    <TextBlock Text="{Binding ViewModel.Title}" FontSize="28" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding ViewModel.Subtitle}" Style="{StaticResource Secondary}" Margin="0,10,0,20" />
+                    <WrapPanel IsEnabled="{Binding ViewModel.Workspace.IsIdle}" Margin="0,0,0,24">
+                        <ui:Button Content="{Binding ViewModel.AddLabel}" ToolTip="Add to your library" Background="#567AEA" Foreground="White" Command="{Binding ViewModel.AddCommand}" Padding="16,8" />
+                        <ui:Button Content="{Binding ViewModel.SourceLabel}" Command="{Binding ViewModel.OpenExternalSourceCommand}" Margin="10,0,0,0" />
+                    </WrapPanel>
+                    <TextBlock Text="Genres" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ViewModel.Genres}" Style="{StaticResource Secondary}" Margin="0,6,0,18" />
+                    <TextBlock Text="Studios" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ViewModel.Studios}" Style="{StaticResource Secondary}" Margin="0,6,0,18" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Text="Synopsis" FontSize="20" FontWeight="SemiBold" Margin="0,28,0,12" />
+            <TextBlock Text="{Binding ViewModel.Description}" TextWrapping="Wrap" FontSize="15" LineHeight="24" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -18,6 +18,8 @@ namespace episodeTracker.Models
         public int? Watched { get; set; }
         public string? Overview { get; set; }
         public string? Poster { get; set; }
+        [JsonPropertyName("anime_type")]
+        public string? AnimeType { get; set; }
         public string Url { get; set; } = "";
 
         public string SimklUrl => new Uri(new Uri("https://simkl.com/"), Url).AbsoluteUri;
@@ -43,6 +45,15 @@ namespace episodeTracker.Models
     {
         public double? Rating { get; set; }
         public int? Votes { get; set; }
+    }
+
+    public sealed class SimklAnimeDetails : SimklShow
+    {
+        [JsonPropertyName("total_episodes")]
+        public int? TotalEpisodes { get; set; }
+        public string? Status { get; set; }
+        public List<string>? Genres { get; set; }
+        public SimklAnimeRatings? Ratings { get; set; }
     }
 }
 

@@ -3,11 +3,11 @@ using Wpf.Ui.Abstractions.Controls;
 
 namespace episodeTracker.Views.Pages
 {
-    public partial class DashboardPage : INavigableView<DashboardViewModel>
+    public partial class DashboardPage : INavigableView<HomeViewModel>
     {
-        public DashboardViewModel ViewModel { get; }
+        public HomeViewModel ViewModel { get; }
 
-        public DashboardPage(DashboardViewModel viewModel)
+        public DashboardPage(HomeViewModel viewModel)
         {
             ViewModel = viewModel;
             DataContext = this;

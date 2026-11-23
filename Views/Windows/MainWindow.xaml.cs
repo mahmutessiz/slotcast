@@ -54,12 +54,12 @@ namespace episodeTracker.Views.Windows
 
         INavigationView INavigationWindow.GetNavigation()
         {
-            throw new NotImplementedException();
+            return RootNavigation;
         }
 
         public void SetServiceProvider(IServiceProvider serviceProvider)
         {
-            throw new NotImplementedException();
+            RootNavigation.SetServiceProvider(serviceProvider);
         }
     }
 }

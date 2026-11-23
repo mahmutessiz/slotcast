@@ -19,9 +19,21 @@ namespace episodeTracker.ViewModels.Windows
             },
             new NavigationViewItem()
             {
-                Content = "Data",
-                Icon = new SymbolIcon { Symbol = SymbolRegular.DataHistogram24 },
-                TargetPageType = typeof(Views.Pages.DataPage)
+                Content = "Calendar",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.CalendarLtr24 },
+                TargetPageType = typeof(Views.Pages.CalendarPage)
+            },
+            new NavigationViewItem()
+            {
+                Content = "My library",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.Library24 },
+                TargetPageType = typeof(Views.Pages.LibraryPage)
+            },
+            new NavigationViewItem()
+            {
+                Content = "Discover",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.Search24 },
+                TargetPageType = typeof(Views.Pages.DiscoverPage)
             }
         };
 

@@ -7,6 +7,12 @@ namespace episodeTracker.Services;
 
 public class SimklService(IHttpClientFactory clientFactory, IConfiguration configuration)
 {
+    public async Task<SimklAnimeDetails?> GetAnimeDetailsAsync(int id, CancellationToken ct = default)
+    {
+        using var client = clientFactory.CreateClient("Simkl");
+        return await client.GetFromJsonAsync<SimklAnimeDetails>(
+            $"anime/{id}?app-name=slotcast&app-version=1.0", ct);
+    }
     public async Task<SimklShow?> GetShowAsync(
         int simklId,
         CancellationToken cancellationToken = default)
