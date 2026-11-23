@@ -16,7 +16,11 @@
   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
   mc:Ignorable="d"
 >
-  <Grid VerticalAlignment="Top">
+  <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
         <StackPanel>
         <ui:Button
             Content="Load show"
@@ -43,6 +47,44 @@
             Margin="0,8,0,0"
             Text="{Binding ViewModel.ErrorMessage}"
             TextWrapping="Wrap" />
+
+        <TextBlock Margin="0,24,0,12"
+                   FontSize="20" FontWeight="SemiBold"
+                   Text="Simkl Trending Anime — Today" />
+        <ui:Button Content="Load trending anime"
+                   Command="{Binding ViewModel.LoadTrendingAnimesCommand}"
+                   Appearance="Primary" Margin="0,0,0,12" />
         </StackPanel>
+
+        <ListView Grid.Row="1" ItemsSource="{Binding ViewModel.TrendingAnimes}"
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Anime" Width="280">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock>
+                                    <Hyperlink
+                                        Command="{Binding DataContext.ViewModel.OpenSimklCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        CommandParameter="{Binding SimklUrl}">
+                                        <Run Text="{Binding Title}" />
+                                    </Hyperlink>
+                                </TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Year" Width="65"
+                                    DisplayMemberBinding="{Binding Year}" />
+                    <GridViewColumn Header="Watched today" Width="110"
+                                    DisplayMemberBinding="{Binding Watched}" />
+                    <GridViewColumn Header="SIMKL rank" Width="90"
+                                    DisplayMemberBinding="{Binding Rank}" />
+                    <GridViewColumn Header="SIMKL rating" Width="95"
+                                    DisplayMemberBinding="{Binding Ratings.Simkl.Rating}" />
+                    <GridViewColumn Header="MAL rating" Width="90"
+                                    DisplayMemberBinding="{Binding Ratings.Mal.Rating}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
     </Grid>
 </Page>

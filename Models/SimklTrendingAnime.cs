@@ -2,12 +2,25 @@
 
 namespace episodeTracker.Models
 {
-    public class SimklBestAnimes
+    public class SimklTrendingAnime
     {
         public string Title { get; set; } = "";
-        public int? Year { get; set; }
+        [JsonPropertyName("release_date")]
+        public string? ReleaseDate { get; set; }
+
+        public int? Year => DateTime.TryParseExact(
+            ReleaseDate, "MM/dd/yyyy",
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var date)
+            ? date.Year : null;
+
+        public int? Rank { get; set; }
+        public int? Watched { get; set; }
+        public string? Overview { get; set; }
         public string? Poster { get; set; }
         public string Url { get; set; } = "";
+
+        public string SimklUrl => new Uri(new Uri("https://simkl.com/"), Url).AbsoluteUri;
 
         public SimklAnimeIds? Ids { get; set; }
         public SimklAnimeRatings? Ratings { get; set; }
@@ -33,27 +46,3 @@ namespace episodeTracker.Models
     }
 }
 
-/*
- [
-  {
-    "title": "Sousou no Frieren",
-    "year": 2023,
-    "poster": "14/1430387937a6ef6167",
-    "url": "/anime/1990194/sousou-no-frieren",
-    "ids": {
-      "simkl_id": 1990194,
-      "slug": "sousou-no-frieren"
-    },
-    "ratings": {
-      "simkl": {
-        "rating": 9.2,
-        "votes": 4636
-      },
-      "mal": {
-        "rating": 9.3,
-        "votes": 886825
-      }
-    }
-  }
-]
- */

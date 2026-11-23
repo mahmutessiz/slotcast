@@ -66,6 +66,13 @@ namespace episodeTracker
                     client.DefaultRequestHeaders.UserAgent.ParseAdd("slotcast/1.0");
                 });
                 
+                services.AddHttpClient("SimklPublic", client =>
+                {
+                    client.BaseAddress = new Uri("https://data.simkl.in/");
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("slotcast/1.0");
+                });
+
                 services.AddSingleton<SimklService>();
             }).Build();
 

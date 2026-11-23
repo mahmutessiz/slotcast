@@ -1,10 +1,11 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
 using episodeTracker.Models;
 
 namespace episodeTracker.Services;
 
-public class SimklService(IHttpClientFactory clientFactory)
+public class SimklService(IHttpClientFactory clientFactory, IConfiguration configuration)
 {
     public async Task<SimklShow?> GetShowAsync(
         int simklId,
@@ -16,4 +17,24 @@ public class SimklService(IHttpClientFactory clientFactory)
             $"tv/{simklId}?app-name=slotcast&app-version=1.0",
             cancellationToken);
     }
+
+    public async Task<List<SimklTrendingAnime>> GetTrendingAnimesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var clientId = configuration["Simkl:ClientId"];
+
+        if (string.IsNullOrWhiteSpace(clientId))
+            throw new InvalidOperationException("SIMKL Client ID is missing.");
+
+        using var client = clientFactory.CreateClient("SimklPublic");
+
+        var path =
+            "discover/trending/anime/today_100.json" +
+            $"?client_id={Uri.EscapeDataString(clientId)}" +
+            "&app-name=slotcast&app-version=1.0";
+
+        return await client.GetFromJsonAsync<List<SimklTrendingAnime>>(
+            path, cancellationToken) ?? [];
+    }
+    
 }
