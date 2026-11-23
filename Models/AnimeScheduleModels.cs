@@ -1,4 +1,4 @@
-namespace episodeTracker.Models;
+namespace SlotCast.Models;
 
 public sealed class AnimeSearchResponse
 {

@@ -1,10 +1,10 @@
-﻿using episodeTracker.Views.Pages;
-using episodeTracker.Views.Windows;
+using SlotCast.Views.Pages;
+using SlotCast.Views.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Wpf.Ui;
 
-namespace episodeTracker.Services
+namespace SlotCast.Services
 {
     /// <summary>
     /// Managed host of the application.

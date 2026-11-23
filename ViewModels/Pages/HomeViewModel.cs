@@ -1,12 +1,12 @@
-using episodeTracker.Models;
-using episodeTracker.Services;
-using episodeTracker.Views.Pages;
+using SlotCast.Models;
+using SlotCast.Services;
+using SlotCast.Views.Pages;
 using System.Net.Http;
 using System.Text.Json;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions.Controls;
 
-namespace episodeTracker.ViewModels.Pages;
+namespace SlotCast.ViewModels.Pages;
 
 public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
     DashboardViewModel workspace, INavigationService? navigation = null,

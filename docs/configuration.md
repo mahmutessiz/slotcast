@@ -30,7 +30,7 @@ For a PowerShell session, environment variables can replace the local file:
 ```powershell
 $env:AnimeScheduleApiToken = 'YOUR_APPLICATION_TOKEN'
 $env:Simkl__ClientId = 'YOUR_SIMKL_CLIENT_ID'
-dotnet run --project episodeTracker.csproj
+dotnet run --project SlotCast.csproj
 ```
 
 The double underscore maps nested configuration keys. These assignments affect processes started from that shell; they do not automatically configure an app launched separately from the Start menu.

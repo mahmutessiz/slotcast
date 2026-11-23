@@ -1,12 +1,12 @@
-﻿using Wpf.Ui.Abstractions.Controls;
+using Wpf.Ui.Abstractions.Controls;
 using Wpf.Ui.Appearance;
-using episodeTracker.Services;
+using SlotCast.Services;
 using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
 using System.Diagnostics;
 
-namespace episodeTracker.ViewModels.Pages
+namespace SlotCast.ViewModels.Pages
 {
     public partial class SettingsViewModel : ObservableObject, INavigationAware
     {

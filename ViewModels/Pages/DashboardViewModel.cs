@@ -1,14 +1,14 @@
-using episodeTracker.Models;
-using episodeTracker.Services;
+using SlotCast.Models;
+using SlotCast.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
 using Wpf.Ui.Abstractions.Controls;
 using Wpf.Ui;
-using episodeTracker.Views.Pages;
+using SlotCast.Views.Pages;
 
-namespace episodeTracker.ViewModels.Pages;
+namespace SlotCast.ViewModels.Pages;
 
 public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibraryService library, INavigationService? navigation = null,
     AnimeDetailsNavigationService? detailsNavigation = null) : ObservableObject, INavigationAware

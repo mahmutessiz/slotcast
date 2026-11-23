@@ -1,4 +1,4 @@
-﻿namespace episodeTracker.Models
+namespace SlotCast.Models
 {
     public class AppConfig
     {

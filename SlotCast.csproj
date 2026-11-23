@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <AssemblyName>SlotCast</AssemblyName>
-    <RootNamespace>episodeTracker</RootNamespace>
+    <RootNamespace>SlotCast</RootNamespace>
     <AssemblyTitle>SlotCast</AssemblyTitle>
     <Product>SlotCast</Product>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>

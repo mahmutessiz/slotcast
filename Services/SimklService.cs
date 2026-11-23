@@ -1,9 +1,9 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
-using episodeTracker.Models;
+using SlotCast.Models;
 
-namespace episodeTracker.Services;
+namespace SlotCast.Services;
 
 public class SimklService(IHttpClientFactory clientFactory, IConfiguration configuration)
 {

@@ -1,4 +1,4 @@
-namespace episodeTracker.Resources
+namespace SlotCast.Resources
 {
     public partial class Translations
     {

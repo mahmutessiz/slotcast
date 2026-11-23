@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Wpf.Ui.Controls;
 
-namespace episodeTracker.ViewModels.Windows
+namespace SlotCast.ViewModels.Windows
 {
     public partial class MainWindowViewModel : ObservableObject
     {

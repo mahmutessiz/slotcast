@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace episodeTracker.Models;
+namespace SlotCast.Models;
 
 public sealed class LibraryAnime
 {

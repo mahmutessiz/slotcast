@@ -1,6 +1,6 @@
-using episodeTracker.Models;
-using episodeTracker.Services;
-using episodeTracker.Views.Pages;
+using SlotCast.Models;
+using SlotCast.Services;
+using SlotCast.Views.Pages;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions.Controls;
 
-namespace episodeTracker.ViewModels.Pages;
+namespace SlotCast.ViewModels.Pages;
 
 public partial class AnimeDetailsViewModel(AnimeDetailsState state, AnimeScheduleService api, SimklService simkl,
     DashboardViewModel workspace, INavigationService? navigation = null) : ObservableObject, INavigationAware

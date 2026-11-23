@@ -1,9 +1,9 @@
-using episodeTracker.Models;
+using SlotCast.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.RegularExpressions;
 
-namespace episodeTracker.Services;
+namespace SlotCast.Services;
 
 public sealed class AnimeLibraryService(IDbContextFactory<SlotCastDbContext> factory)
 {

@@ -1,8 +1,8 @@
-using episodeTracker.Models;
-using episodeTracker.Views.Pages;
+using SlotCast.Models;
+using SlotCast.Views.Pages;
 using Wpf.Ui;
 
-namespace episodeTracker.Services;
+namespace SlotCast.Services;
 
 public sealed class AnimeDetailsState
 {

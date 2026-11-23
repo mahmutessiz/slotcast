@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace episodeTracker.Services;
+namespace SlotCast.Services;
 
 public static class SlotCastPaths
 {

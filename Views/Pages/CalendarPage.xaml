@@ -1,4 +1,4 @@
-<Page x:Class="episodeTracker.Views.Pages.CalendarPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" ScrollViewer.CanContentScroll="False" Title="Calendar" Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+<Page x:Class="SlotCast.Views.Pages.CalendarPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" ScrollViewer.CanContentScroll="False" Title="Calendar" Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
   <Page.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="AnimeStyles.xaml" /></ResourceDictionary.MergedDictionaries>

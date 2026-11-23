@@ -1,13 +1,13 @@
-using episodeTracker.ViewModels.Pages;
+using SlotCast.ViewModels.Pages;
 using Wpf.Ui.Abstractions.Controls;
-using episodeTracker.Models;
+using SlotCast.Models;
 using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
-namespace episodeTracker.Views.Pages;
+namespace SlotCast.Views.Pages;
 
 public partial class CalendarPage : INavigableView<DashboardViewModel>
 {

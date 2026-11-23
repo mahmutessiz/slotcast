@@ -1,8 +1,8 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows.Data;
 using Wpf.Ui.Appearance;
 
-namespace episodeTracker.Helpers
+namespace SlotCast.Helpers
 {
     internal class EnumToBooleanConverter : IValueConverter
     {

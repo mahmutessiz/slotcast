@@ -1,9 +1,9 @@
-using episodeTracker.Models;
+using SlotCast.Models;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Text.Json;
 
-namespace episodeTracker.Services;
+namespace SlotCast.Services;
 
 public sealed class WatchlistTransferService(IDbContextFactory<SlotCastDbContext> factory)
 {

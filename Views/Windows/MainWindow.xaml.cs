@@ -1,10 +1,10 @@
-﻿using episodeTracker.ViewModels.Windows;
+using SlotCast.ViewModels.Windows;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
-namespace episodeTracker.Views.Windows
+namespace SlotCast.Views.Windows
 {
     public partial class MainWindow : INavigationWindow
     {

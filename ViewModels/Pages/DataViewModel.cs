@@ -1,8 +1,8 @@
-﻿using episodeTracker.Models;
+using SlotCast.Models;
 using System.Windows.Media;
 using Wpf.Ui.Abstractions.Controls;
 
-namespace episodeTracker.ViewModels.Pages
+namespace SlotCast.ViewModels.Pages
 {
     public partial class DataViewModel : ObservableObject, INavigationAware
     {

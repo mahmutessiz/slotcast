@@ -1,6 +1,6 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 
-namespace episodeTracker.Models
+namespace SlotCast.Models
 {
     public struct DataColor
     {

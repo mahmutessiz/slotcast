@@ -1,8 +1,8 @@
-﻿using episodeTracker.Services;
-using episodeTracker.ViewModels.Pages;
-using episodeTracker.ViewModels.Windows;
-using episodeTracker.Views.Pages;
-using episodeTracker.Views.Windows;
+using SlotCast.Services;
+using SlotCast.ViewModels.Pages;
+using SlotCast.ViewModels.Windows;
+using SlotCast.Views.Pages;
+using SlotCast.Views.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,7 +12,7 @@ using Wpf.Ui;
 using Wpf.Ui.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
-namespace episodeTracker
+namespace SlotCast
 {
     /// <summary>
     /// Interaction logic for App.xaml

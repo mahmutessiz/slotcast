@@ -60,15 +60,15 @@ Requirements: Windows, a .NET SDK capable of targeting .NET 10, and NuGet access
 From the repository root:
 
 ```powershell
-dotnet restore episodeTracker.csproj
-dotnet build episodeTracker.csproj
-dotnet run --project episodeTracker.csproj
+dotnet restore SlotCast.csproj
+dotnet build SlotCast.csproj
+dotnet run --project SlotCast.csproj
 ```
 
 To build a self-contained app:
 
 ```powershell
-dotnet publish episodeTracker.csproj -p:PublishProfile=WindowsSelfContained
+dotnet publish SlotCast.csproj -p:PublishProfile=WindowsSelfContained
 ```
 
 To build the installer, install [Inno Setup 6](https://jrsoftware.org/isinfo.php), then run:

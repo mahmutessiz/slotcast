@@ -1,7 +1,7 @@
-using episodeTracker.ViewModels.Pages;
+using SlotCast.ViewModels.Pages;
 using Wpf.Ui.Abstractions.Controls;
 
-namespace episodeTracker.Views.Pages;
+namespace SlotCast.Views.Pages;
 
 public partial class AnimeDetailsPage : INavigableView<AnimeDetailsViewModel>
 {

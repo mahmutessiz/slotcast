@@ -7,6 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../episodeTracker.csproj" />
+    <ProjectReference Include="../../SlotCast.csproj" />
   </ItemGroup>
 </Project>

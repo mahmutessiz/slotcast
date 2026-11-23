@@ -25,9 +25,9 @@ SlotCast is a Windows WPF app targeting `net10.0-windows`, with nullable referen
 From the repository root:
 
 ```powershell
-dotnet restore episodeTracker.csproj
-dotnet build episodeTracker.csproj
-dotnet run --project episodeTracker.csproj
+dotnet restore SlotCast.csproj
+dotnet build SlotCast.csproj
+dotnet run --project SlotCast.csproj
 ```
 
 See [configuration](configuration.md) before running provider-backed features. Keep local credentials out of Git.
@@ -67,7 +67,7 @@ Backup format changes need separate consideration from SQLite schema changes. Th
 ## Self-contained publish and installer
 
 ```powershell
-dotnet publish episodeTracker.csproj -p:PublishProfile=WindowsSelfContained
+dotnet publish SlotCast.csproj -p:PublishProfile=WindowsSelfContained
 ```
 
 The profile produces a Windows x64, self-contained, single-file executable plus public `appsettings.json`. Native libraries can extract at runtime; trimming is disabled for WPF. Output goes under `artifacts/publish/win-x64/`.

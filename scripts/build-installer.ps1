@@ -27,7 +27,7 @@ if (-not $InnoCompiler -or -not (Test-Path -LiteralPath $InnoCompiler)) {
 $buildStamp = (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
 $publishDirectory = Join-Path $projectRoot "artifacts\publish\win-x64\$Version-$buildStamp"
 $installerDirectory = Join-Path $projectRoot 'artifacts\installer'
-$project = Join-Path $projectRoot 'episodeTracker.csproj'
+$project = Join-Path $projectRoot 'SlotCast.csproj'
 
 & dotnet publish $project -p:PublishProfile=WindowsSelfContained "-p:Version=$Version" `
     -p:UseSharedCompilation=false --disable-build-servers -o $publishDirectory

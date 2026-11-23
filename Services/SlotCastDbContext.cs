@@ -1,7 +1,7 @@
-using episodeTracker.Models;
+using SlotCast.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace episodeTracker.Services;
+namespace SlotCast.Services;
 
 public sealed class SlotCastDbContext(DbContextOptions<SlotCastDbContext> options) : DbContext(options)
 {

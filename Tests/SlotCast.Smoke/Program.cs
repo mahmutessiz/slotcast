@@ -1,6 +1,6 @@
-using episodeTracker.Models;
-using episodeTracker.Services;
-using episodeTracker.ViewModels.Pages;
+using SlotCast.Models;
+using SlotCast.Services;
+using SlotCast.ViewModels.Pages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -339,10 +339,10 @@ var uiThread = new Thread(() =>
         {
             Title = $"A longer TV anime title {i}", Subtitle = "2026 · TV · 12 episodes", Anime = home.NewReleases[0].Anime
         }).ToList();
-        Page[] pages = [new episodeTracker.Views.Pages.DashboardPage(home),
-            new episodeTracker.Views.Pages.CalendarPage(vm), new episodeTracker.Views.Pages.LibraryPage(vm),
-            new episodeTracker.Views.Pages.DiscoverPage(vm), new episodeTracker.Views.Pages.AnimeDetailsPage(detailVm),
-            new episodeTracker.Views.Pages.SettingsPage(new SettingsViewModel(services.GetRequiredService<WatchlistTransferService>(), vm))];
+        Page[] pages = [new SlotCast.Views.Pages.DashboardPage(home),
+            new SlotCast.Views.Pages.CalendarPage(vm), new SlotCast.Views.Pages.LibraryPage(vm),
+            new SlotCast.Views.Pages.DiscoverPage(vm), new SlotCast.Views.Pages.AnimeDetailsPage(detailVm),
+            new SlotCast.Views.Pages.SettingsPage(new SettingsViewModel(services.GetRequiredService<WatchlistTransferService>(), vm))];
         foreach (var page in pages)
         {
             page.Width = 1160;
@@ -377,7 +377,7 @@ var uiThread = new Thread(() =>
         Check(lastCard.TranslatePoint(new Point(), pages[0]).Y > firstCard.TranslatePoint(new Point(), pages[0]).Y,
             "Home poster cards wrap onto additional rows");
         Check(Visuals<ScrollViewer>(pages[0]).All(x => x.ScrollableWidth == 0), "Home has no sideways scrolling");
-        var framedHome = new episodeTracker.Views.Pages.DashboardPage(home);
+        var framedHome = new SlotCast.Views.Pages.DashboardPage(home);
         var presenter = new Wpf.Ui.Controls.NavigationViewContentPresenter { Width = 1160, Height = 780, TransitionDuration = 0 };
         var hostWindow = new Window { Content = presenter, Width = 1160, Height = 780,
             WindowStyle = WindowStyle.None, ShowInTaskbar = false, ShowActivated = false, Opacity = 0 };
@@ -394,7 +394,7 @@ var uiThread = new Thread(() =>
         homeScroll.ScrollToBottom();
         presenter.UpdateLayout();
         Check(homeScroll.VerticalOffset > 0, "Home can scroll vertically to trending and upcoming sections");
-        var framedCalendar = new episodeTracker.Views.Pages.CalendarPage(vm);
+        var framedCalendar = new SlotCast.Views.Pages.CalendarPage(vm);
         presenter.Navigate(framedCalendar);
         System.Windows.Threading.Dispatcher.CurrentDispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         presenter.UpdateLayout();
@@ -408,7 +408,7 @@ var uiThread = new Thread(() =>
         hostWindow.Close();
         calendar.UpdateLayout();
         Check(weekScroller.ViewportWidth > 1100, "Calendar uses the full page width without a sidebar");
-        var navigation = new episodeTracker.ViewModels.Windows.MainWindowViewModel();
+        var navigation = new SlotCast.ViewModels.Windows.MainWindowViewModel();
         var targets = navigation.MenuItems.OfType<Wpf.Ui.Controls.NavigationViewItem>().Select(x => x.TargetPageType).ToList();
         Check(targets.Count == 4 && targets.Distinct().Count() == 4, "Side navigation has four distinct page destinations");
         if (trace.ToString().Contains("Error:")) Console.WriteLine(trace.ToString());
@@ -417,11 +417,11 @@ var uiThread = new Thread(() =>
         {
             var screenshotDirectory = Path.Combine(Directory.GetCurrentDirectory(), "docs", "screenshots");
             Directory.CreateDirectory(screenshotDirectory);
-            CaptureDocumentationPage(new episodeTracker.Views.Pages.DashboardPage(screenshotHome), "home");
-            CaptureDocumentationPage(new episodeTracker.Views.Pages.CalendarPage(screenshotLibrary), "calendar");
-            CaptureDocumentationPage(new episodeTracker.Views.Pages.LibraryPage(screenshotLibrary), "library");
+            CaptureDocumentationPage(new SlotCast.Views.Pages.DashboardPage(screenshotHome), "home");
+            CaptureDocumentationPage(new SlotCast.Views.Pages.CalendarPage(screenshotLibrary), "calendar");
+            CaptureDocumentationPage(new SlotCast.Views.Pages.LibraryPage(screenshotLibrary), "library");
             screenshotLibrary.ShowArchive = true;
-            CaptureDocumentationPage(new episodeTracker.Views.Pages.LibraryPage(screenshotLibrary), "archive");
+            CaptureDocumentationPage(new SlotCast.Views.Pages.LibraryPage(screenshotLibrary), "archive");
             void CaptureDocumentationPage(Page page, string name)
             {
                 page.Width = 1160;
