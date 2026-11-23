@@ -13,9 +13,11 @@ namespace SlotCast.ViewModels.Pages
         private readonly WatchlistTransferService _transfer;
         private readonly DashboardViewModel _workspace;
 
-        public SettingsViewModel(WatchlistTransferService transfer, DashboardViewModel workspace)
+        public UpdatesViewModel Updates { get; }
+        public SettingsViewModel(WatchlistTransferService transfer, DashboardViewModel workspace, UpdatesViewModel updates)
         {
             _transfer = transfer;
+            Updates = updates;
             _workspace = workspace;
         }
 

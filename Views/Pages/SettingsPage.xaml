@@ -59,6 +59,14 @@
       GroupName="themeSelect"
       IsChecked="{Binding ViewModel.CurrentTheme, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Dark, Mode=OneWay}"
     />
+    <TextBlock Margin="0,24,0,0" FontSize="20" FontWeight="Medium" Text="Updates" />
+    <TextBlock Margin="0,8,0,0" Text="{Binding ViewModel.Updates.Status}" TextWrapping="Wrap" />
+    <WrapPanel Margin="0,12,0,0">
+      <ui:Button Content="Check for updates" Command="{Binding ViewModel.Updates.CheckForUpdatesCommand}" IsEnabled="{Binding ViewModel.Updates.IsIdle}" Margin="0,0,12,8" />
+      <ui:Button Content="Download &amp; install" Command="{Binding ViewModel.Updates.InstallUpdateCommand}" IsEnabled="{Binding ViewModel.Updates.CanInstall}" Margin="0,0,0,8" />
+    </WrapPanel>
+    <ProgressBar Height="4" Minimum="0" Maximum="100" Value="{Binding ViewModel.Updates.DownloadProgress, Mode=OneWay}" />
+    <TextBlock Margin="0,8,0,0" Text="Updates come from mahmutessiz/slotcast on GitHub. SlotCast closes during installation; your library is retained." TextWrapping="Wrap" />
     <TextBlock Margin="0,24,0,0" FontSize="20" FontWeight="Medium" Text="About SlotCast" />
     <TextBlock Margin="0,12,0,0" Text="{Binding ViewModel.AppVersion, Mode=OneWay}" />
   </StackPanel>

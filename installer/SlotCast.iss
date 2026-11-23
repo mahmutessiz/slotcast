@@ -1,6 +1,6 @@
 ; Build from the project root with: .\scripts\build-installer.ps1
 #ifndef AppVersion
-  #define AppVersion "1.0.2"
+  #define AppVersion "1.0.3"
 #endif
 #ifndef PublishDir
   #define PublishDir SourcePath + "..\artifacts\publish\win-x64"
@@ -49,3 +49,12 @@ Name: "{autodesktop}\SlotCast"; Filename: "{app}\SlotCast.exe"; WorkingDir: "{ap
 
 [Run]
 Filename: "{app}\SlotCast.exe"; Description: "Launch SlotCast"; Flags: nowait postinstall skipifsilent
+
+; Restart only after an update initiated from inside SlotCast.
+Filename: "{app}\SlotCast.exe"; Flags: nowait; Check: IsSlotCastUpdate
+
+[Code]
+function IsSlotCastUpdate: Boolean;
+begin
+  Result := ExpandConstant('{param:SLOTCASTUPDATE|0}') = '1';
+end;

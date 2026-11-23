@@ -27,6 +27,9 @@ namespace SlotCast.Services
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await HandleActivationAsync();
+            // Start after activation so a slow/offline GitHub request never delays the main window.
+            _ = Application.Current.Dispatcher.BeginInvoke(new Action(async () =>
+                await _serviceProvider.GetRequiredService<SlotCast.ViewModels.Pages.UpdatesViewModel>().CheckAsync(true)));
         }
 
         /// <summary>

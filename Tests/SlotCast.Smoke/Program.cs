@@ -18,6 +18,8 @@ using Wpf.Ui.Markup;
 using Wpf.Ui.Appearance;
 using System.Windows.Controls;
 
+await UpdateChecks.RunAsync();
+
 var folder = Path.Combine(Path.GetTempPath(), "SlotCast-Smoke-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(folder);
 var database = Path.Combine(folder, "test.db");
@@ -344,7 +346,7 @@ var uiThread = new Thread(() =>
         Page[] pages = [new SlotCast.Views.Pages.DashboardPage(home),
             new SlotCast.Views.Pages.CalendarPage(vm), new SlotCast.Views.Pages.LibraryPage(vm),
             new SlotCast.Views.Pages.DiscoverPage(vm), new SlotCast.Views.Pages.AnimeDetailsPage(detailVm),
-            new SlotCast.Views.Pages.SettingsPage(new SettingsViewModel(services.GetRequiredService<WatchlistTransferService>(), vm))];
+            new SlotCast.Views.Pages.SettingsPage(new SettingsViewModel(services.GetRequiredService<WatchlistTransferService>(), vm, new UpdatesViewModel(new AppUpdateService(new FixtureFactory(handler)))))];
         foreach (var page in pages)
         {
             page.Width = 1160;

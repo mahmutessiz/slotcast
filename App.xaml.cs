@@ -65,6 +65,14 @@ namespace SlotCast
                 services.AddSingleton<DataViewModel>();
                 services.AddSingleton<SettingsPage>();
                 services.AddSingleton<SettingsViewModel>();
+                services.AddSingleton<AppUpdateService>();
+                services.AddSingleton<UpdatesViewModel>();
+                services.AddHttpClient("GitHubUpdates", client =>
+                {
+                    client.Timeout = TimeSpan.FromMinutes(5);
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("SlotCast-Updater/1.0");
+                    client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+                });
 
                 services.AddHttpClient("Simkl", client =>
                 {
