@@ -15,13 +15,24 @@
       <TextBlock Text="{Binding ViewModel.BusyMessage}" Style="{StaticResource Secondary}" Margin="0,4,0,0" />
     </StackPanel>
     <Grid Grid.Row="2" IsEnabled="{Binding ViewModel.IsIdle}">
-      <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <WrapPanel Margin="0,0,0,12">
+        <TextBlock Text="{Binding ViewModel.LibrarySectionTitle}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,20,0" />
+        <ui:Button Content="Watching" Command="{Binding ViewModel.ShowActiveLibraryCommand}" />
+        <ui:Button Content="Archive" Command="{Binding ViewModel.ShowCompletedLibraryCommand}" Margin="8,0,20,0" />
+        <ui:Button Content="Mark completed" Command="{Binding ViewModel.MarkCompletedCommand}" CommandParameter="{Binding ViewModel.SelectedAnime}" />
+        <ui:Button Content="Details" Command="{Binding ViewModel.OpenLibraryDetailsCommand}" CommandParameter="{Binding ViewModel.SelectedAnime}" Margin="8,0,0,0" />
+        <ui:Button Content="Remove" Command="{Binding ViewModel.RemoveAnimeCommand}" CommandParameter="{Binding ViewModel.SelectedAnime}" Margin="8,0,0,0" />
+      </WrapPanel>
+      <Grid Grid.Row="1">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="240" />
-          <ColumnDefinition Width="260" />
+          <ColumnDefinition Width="320" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <ListBox ItemsSource="{Binding ViewModel.LibraryItems}" SelectedItem="{Binding ViewModel.SelectedAnime}" Margin="0,0,16,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" Grid.Column="1">
+        <ListBox ItemsSource="{Binding ViewModel.VisibleLibraryItems}" SelectedItem="{Binding ViewModel.SelectedAnime}" Margin="0,0,16,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" Grid.Column="0">
           <ListBox.ItemContainerStyle>
             <Style TargetType="ListBoxItem">
               <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -69,35 +80,7 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
-        <Border Style="{StaticResource Panel}" Margin="0,0,16,0">
-          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel>
-              <Border Width="170" Height="255" Margin="0,0,0,16" VerticalAlignment="Top" CornerRadius="8" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="6" HorizontalAlignment="Center">
-                <Border.Style>
-                  <Style TargetType="Border">
-                    <Style.Triggers>
-                      <DataTrigger Binding="{Binding ViewModel.SelectedAnime}" Value="{x:Null}">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                      </DataTrigger>
-                    </Style.Triggers>
-                  </Style>
-                </Border.Style>
-                <Grid>
-                  <TextBlock Text="No poster" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource Secondary}" />
-                  <Image Source="{Binding ViewModel.SelectedAnime.PosterUrl}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
-                </Grid>
-              </Border>
-              <TextBlock Text="{Binding ViewModel.SelectedAnime.Title}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding ViewModel.SelectedAnime.Description}" Style="{StaticResource Secondary}" Margin="0,8,0,0" />
-              <WrapPanel Margin="0,12,0,0">
-                <ui:Button Content="Details" Command="{Binding ViewModel.OpenLibraryDetailsCommand}" CommandParameter="{Binding ViewModel.SelectedAnime}" />
-                <ui:Button Content="Remove from library" Command="{Binding ViewModel.RemoveAnimeCommand}" CommandParameter="{Binding ViewModel.SelectedAnime}" Margin="8,0,0,0" />
-              </WrapPanel>
-              <TextBlock Text="{Binding ViewModel.EpisodeSummary}" Style="{StaticResource Secondary}" Margin="0,12" />
-            </StackPanel>
-          </ScrollViewer>
-        </Border>
-        <ListBox Grid.Column="2" ItemsSource="{Binding ViewModel.EpisodeRows}" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" x:Name="EpisodeList">
+        <ListBox Grid.Column="1" ItemsSource="{Binding ViewModel.EpisodeRows}" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" x:Name="EpisodeList">
           <ListBox.ItemTemplate>
             <DataTemplate>
               <Grid Margin="6,8">
@@ -107,6 +90,18 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                   <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding WatchedStatus}" Margin="0,4,0,0">
+                    <TextBlock.Style>
+                      <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding IsWatched}" Value="True">
+                            <Setter Property="Foreground" Value="#79C99A" />
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Style>
+                  </TextBlock>
                   <TextBlock Text="{Binding ScheduleLabel}" Style="{StaticResource Secondary}" FontSize="11" Margin="0,4,12,0" />
                 </StackPanel>
                 <ui:Button Grid.Column="1" Content="{Binding ActionLabel}" IsEnabled="{Binding CanMark}" Command="{Binding DataContext.ViewModel.ToggleEpisodeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />

@@ -15,6 +15,9 @@ public sealed class LibraryAnime
     public string? PosterUrl { get; set; }
     public DateTime AddedUtc { get; set; }
     public List<WatchedEpisode> WatchedEpisodes { get; set; } = [];
+    [NotMapped] public bool ManuallyCompleted { get; set; }
+    [NotMapped] public bool IsCompleted => ManuallyCompleted || (TotalEpisodes > 0
+        && Enumerable.Range(1, TotalEpisodes).All(n => WatchedEpisodes.Any(x => x.EpisodeNumber == n)));
     [NotMapped] public string ProgressLabel => $"{WatchedEpisodes.Count} / {(TotalEpisodes > 0 ? TotalEpisodes.ToString() : "?")} watched";
     [NotMapped] public string Subtitle => $"{Year} · TV · {Status}";
 }
@@ -80,6 +83,7 @@ public sealed class CalendarDay
 
 public sealed class EpisodeRow
 {
+    public string WatchedStatus => IsWatched ? "Watched" : "Unwatched";
     public int AnimeId { get; init; }
     public int Number { get; init; }
     public bool IsWatched { get; init; }

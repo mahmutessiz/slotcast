@@ -30,6 +30,28 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
     [ObservableProperty] private List<AnimeDetails> _searchResults = [];
     [ObservableProperty] private int _searchPage = 1;
     [ObservableProperty] private List<LibraryAnime> _libraryItems = [];
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(LibrarySectionTitle))] private bool _showArchive;
+    public string LibrarySectionTitle => ShowArchive ? "Archive — completed series" : "Watching";
+    [ObservableProperty] private List<LibraryAnime> _visibleLibraryItems = [];
+    partial void OnShowArchiveChanged(bool value) => FilterLibrary();
+    private void FilterLibrary()
+    {
+        var id = SelectedAnime?.Id;
+        VisibleLibraryItems = LibraryItems.Where(x => x.IsCompleted == ShowArchive).ToList();
+        SelectedAnime = VisibleLibraryItems.FirstOrDefault(x => x.Id == id) ?? VisibleLibraryItems.FirstOrDefault();
+    }
+    [RelayCommand] private void ShowActiveLibrary() => ShowArchive = false;
+    [RelayCommand] private void ShowCompletedLibrary() => ShowArchive = true;
+    [RelayCommand] private async Task MarkCompletedAsync(LibraryAnime? anime)
+    {
+        if (anime is null) return;
+        await RunAsync(async () =>
+        {
+            await library.SetCompletedAsync(anime.Id, true);
+            await ReloadLibraryAsync();
+            RebuildCalendar();
+        }, "Archiving completed anime…");
+    }
     [ObservableProperty] private LibraryAnime? _selectedAnime;
     [ObservableProperty] private List<EpisodeRow> _episodeRows = [];
     [ObservableProperty] private string _episodeSummary = "Select an anime in your library.";
@@ -140,6 +162,7 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
         {
             await library.AddAsync(anime);
             await ReloadLibraryAsync();
+            ShowArchive = LibraryItems.First(x => x.Route == anime.Route).IsCompleted;
             SelectedAnime = LibraryItems.First(x => x.Route == anime.Route);
             Notice = $"{anime.DisplayTitle} is in your library.";
             await LoadCalendarAsync(false);
@@ -254,9 +277,8 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
 
     private async Task ReloadLibraryAsync()
     {
-        var selectedId = SelectedAnime?.Id;
         LibraryItems = await library.GetLibraryAsync();
-        SelectedAnime = LibraryItems.FirstOrDefault(x => x.Id == selectedId) ?? LibraryItems.FirstOrDefault();
+        FilterLibrary();
         LibrarySummary = $"{LibraryItems.Count} TV anime · {LibraryItems.Sum(x => x.WatchedEpisodes.Count)} episodes watched";
     }
     private DateTime GridStart => DisplayWeek;

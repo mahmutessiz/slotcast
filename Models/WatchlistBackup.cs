@@ -12,6 +12,7 @@ public sealed class WatchlistBackup
 
 public sealed class WatchlistBackupAnime
 {
+    public bool ManuallyCompleted { get; set; }
     // Database IDs are machine-specific and intentionally excluded.
     public string Route { get; set; } = "";
     public string Title { get; set; } = "";

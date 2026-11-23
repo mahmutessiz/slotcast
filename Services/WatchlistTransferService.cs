@@ -19,6 +19,7 @@ public sealed class WatchlistTransferService(IDbContextFactory<SlotCastDbContext
         await db.Database.EnsureCreatedAsync();
         await using var transaction = await db.Database.BeginTransactionAsync();
         var anime = await db.Anime.AsNoTracking().Include(x => x.WatchedEpisodes).OrderBy(x => x.Route).ToListAsync();
+        var completed = await db.Preferences.Where(x => x.Key.StartsWith("completed:") && x.Value == "true").Select(x => x.Key).ToListAsync();
         var backup = new WatchlistBackup
         {
             Format = Format, SchemaVersion = SchemaVersion,
@@ -28,6 +29,7 @@ public sealed class WatchlistTransferService(IDbContextFactory<SlotCastDbContext
             Anime = anime.Select(x => new WatchlistBackupAnime
             {
                 Route = x.Route, Title = x.Title, OriginalTitle = x.OriginalTitle,
+                ManuallyCompleted = completed.Contains("completed:" + x.Route),
                 Year = x.Year, TotalEpisodes = x.TotalEpisodes, Status = x.Status,
                 Description = x.Description, PosterUrl = x.PosterUrl, AddedAtUtc = AsUtc(x.AddedUtc),
                 WatchedEpisodes = x.WatchedEpisodes.OrderBy(w => w.EpisodeNumber).Select(w => new WatchlistBackupEpisode
@@ -63,6 +65,13 @@ public sealed class WatchlistTransferService(IDbContextFactory<SlotCastDbContext
         var addedEpisodes = 0;
         foreach (var imported in backup.Anime!)
         {
+            if (imported.ManuallyCompleted)
+            {
+                var key = "completed:" + imported.Route;
+                var state = await db.Preferences.FindAsync(key);
+                if (state is null) db.Preferences.Add(new LocalPreference { Key = key, Value = "true" });
+                else state.Value = "true";
+            }
             if (!existing.TryGetValue(imported.Route, out var anime))
             {
                 anime = new LibraryAnime

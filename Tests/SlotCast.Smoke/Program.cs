@@ -74,6 +74,35 @@ using (var target = CreateServices(Path.Combine(folder, "backup-target.db"), han
     Check(saved.Count == 2 && saved.Single(x => x.Route == "portable-tv").WatchedEpisodes.Count == 3,
         "Startup initialization and rejected imports preserve all existing library data");
     Check(await store.GetSchedulePreferenceAsync() == "dub", "Import restores release schedule preference");
+    var portable = saved.Single(x => x.Route == "portable-tv");
+    await store.SetCompletedAsync(portable.Id, true);
+    var completedTitle = (await store.GetLibraryAsync()).Single(x => x.Id == portable.Id);
+    Check(completedTitle.IsCompleted && completedTitle.WatchedEpisodes.Count == 12,
+        "Mark completed archives a series and marks its known episodes watched");
+    await store.ToggleWatchedAsync(portable.Id, 12);
+    Check(!(await store.GetLibraryAsync()).Single(x => x.Id == portable.Id).IsCompleted,
+        "Undoing a watched episode reopens a completed series");
+    await store.ToggleWatchedAsync(portable.Id, 12);
+    Check((await store.GetLibraryAsync()).Single(x => x.Id == portable.Id).IsCompleted,
+        "Watching the final remaining episode automatically completes the series");
+    var localOnly = saved.Single(x => x.Route == "local-only");
+    await store.SetCompletedAsync(localOnly.Id, true);
+    await store.InitializeAsync();
+    Check((await store.GetLibraryAsync()).Single(x => x.Id == localOnly.Id).IsCompleted,
+        "Manual completion persists for series with unknown episode totals");
+    var archiveVm = new DashboardViewModel(target.GetRequiredService<AnimeScheduleService>(), store);
+    await archiveVm.ReloadAfterImportAsync();
+    Check(archiveVm.VisibleLibraryItems.Count == 0, "Completed series leave the Watching section");
+    archiveVm.ShowArchive = true;
+    archiveVm.SelectedAnime = archiveVm.VisibleLibraryItems.Single(x => x.Route == "portable-tv");
+    Check(archiveVm.VisibleLibraryItems.Count == 2 && archiveVm.EpisodeRows.All(x => x.WatchedStatus == "Watched"),
+        "Archive shows completed series and explicit watched status per episode");
+    var archiveFile = Path.Combine(folder, "archive.json");
+    await importer.ExportAsync(archiveFile);
+    using var newPc = CreateServices(Path.Combine(folder, "archive-restore.db"), handler);
+    await newPc.GetRequiredService<WatchlistTransferService>().ImportAsync(archiveFile);
+    Check((await newPc.GetRequiredService<AnimeLibraryService>().GetLibraryAsync()).All(x => x.IsCompleted),
+        "JSON transfer preserves automatic and manual completion across PCs");
 }
 foreach (var (date, slug, year) in new[]
 {
