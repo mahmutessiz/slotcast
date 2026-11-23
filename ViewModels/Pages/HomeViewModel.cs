@@ -10,8 +10,10 @@ namespace SlotCast.ViewModels.Pages;
 
 public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
     DashboardViewModel workspace, INavigationService? navigation = null,
-    AnimeDetailsNavigationService? detailsNavigation = null) : ObservableObject, INavigationAware
+    AnimeDetailsNavigationService? detailsNavigation = null, ApiTokenViewModel? credentials = null) : ObservableObject, INavigationAware
 {
+    public ApiTokenViewModel? Credentials => credentials;
+    private int _credentialRevision = -1;
     private DateTime _loadedUtc = DateTime.MinValue;
     private DateTime _loadedDate;
     private string _loadedAirType = "";
@@ -36,9 +38,11 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
 
     public async Task OnNavigatedToAsync()
     {
+        if (Credentials is { NeedsToken: false } && _credentialRevision != Credentials.Revision)
+            await workspace.ReloadAfterImportAsync();
         await workspace.OnNavigatedToAsync();
         if (DateTime.UtcNow - _loadedUtc > TimeSpan.FromHours(1) || _loadedDate != DateTime.Today
-            || _loadedAirType != workspace.SelectedSchedule.Value) await RefreshHomeAsync();
+            || _loadedAirType != workspace.SelectedSchedule.Value || _credentialRevision != (Credentials?.Revision ?? 0)) await RefreshHomeAsync();
     }
     public Task OnNavigatedFromAsync() => Task.CompletedTask;
 
@@ -47,6 +51,7 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
     {
         if (IsBusy) return;
         IsBusy = true;
+        _credentialRevision = Credentials?.Revision ?? 0;
         ErrorMessage = "";
         var failed = new List<string>();
         try
@@ -100,7 +105,7 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
             FeedStatus = NewReleases.Count + Trending.Count + Upcoming.Count + AiringToday.Count + SeasonAnime.Count == 0
                 ? "No anime loaded. Check your connection and application configuration, then refresh."
                 : "TV anime only · Choose a title to add it to your library";
-            if (failed.Count > 0) ErrorMessage = $"Could not refresh {string.Join(", ", failed)}. Try again when connected.";
+            if (failed.Count > 0) ErrorMessage = Credentials?.NeedsToken == true ? "Add or replace your AnimeSchedule token above to load anime and schedules." : $"Could not refresh {string.Join(", ", failed)}. Try again when connected.";
         }
         finally { IsBusy = false; }
     }
@@ -110,6 +115,7 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
     {
         if (IsBusy || !HasMoreSeasonAnime) return;
         IsBusy = true;
+        _credentialRevision = Credentials?.Revision ?? 0;
         ErrorMessage = "";
         try
         {
@@ -129,12 +135,15 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
     private async Task AddFromHomeAsync(HomeAnimeCard? card)
     {
         if (card is null) return;
+        if (Credentials is { NeedsToken: false } && _credentialRevision != Credentials.Revision)
+            await workspace.ReloadAfterImportAsync();
         await workspace.OnNavigatedToAsync();
         if (card.Anime is not null)
         {
             try
             {
                 IsBusy = true;
+        _credentialRevision = Credentials?.Revision ?? 0;
                 // Timetable cards have lightweight metadata. Fetch the complete title before saving it.
                 var anime = card.AirsAt is null ? card.Anime : await api.DetailsAsync(card.Anime.Route);
                 await workspace.AddAnimeCommand.ExecuteAsync(anime);

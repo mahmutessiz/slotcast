@@ -22,6 +22,7 @@ await UpdateChecks.RunAsync();
 
 var folder = Path.Combine(Path.GetTempPath(), "SlotCast-Smoke-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(folder);
+await TokenChecks.RunAsync(folder);
 var database = Path.Combine(folder, "test.db");
 var livePosters = new List<(string Label, byte[] Bytes)>();
 HomeViewModel? screenshotHome = null;
@@ -188,7 +189,9 @@ using (var reopened = CreateServices(database, handler))
 handler.Offline = false;
 var fixtureConfig = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
     { ["Simkl:ClientId"] = "test-client" }).Build();
-var home = new HomeViewModel(api, new SimklService(new FixtureFactory(handler), fixtureConfig), vm);
+var tokenUi = new ApiTokenViewModel(new AnimeScheduleCredentialService(new ConfigurationBuilder().Build(),
+    new FixtureFactory(handler), Path.Combine(folder, "ui-token.json")));
+var home = new HomeViewModel(api, new SimklService(new FixtureFactory(handler), fixtureConfig), vm, credentials: tokenUi);
 await home.RefreshHomeCommand.ExecuteAsync(null);
 Check(home.NewReleases.Count == 1 && home.Upcoming.Count == 1, "Home release feeds exclude OVA entries");
 Check(home.CurrentSeasonLabel == AnimeSeason.ForDate(DateTime.Today).Label && home.SeasonAnime.Count == 1,
@@ -346,7 +349,7 @@ var uiThread = new Thread(() =>
         Page[] pages = [new SlotCast.Views.Pages.DashboardPage(home),
             new SlotCast.Views.Pages.CalendarPage(vm), new SlotCast.Views.Pages.LibraryPage(vm),
             new SlotCast.Views.Pages.DiscoverPage(vm), new SlotCast.Views.Pages.AnimeDetailsPage(detailVm),
-            new SlotCast.Views.Pages.SettingsPage(new SettingsViewModel(services.GetRequiredService<WatchlistTransferService>(), vm, new UpdatesViewModel(new AppUpdateService(new FixtureFactory(handler)))))];
+            new SlotCast.Views.Pages.SettingsPage(new SettingsViewModel(services.GetRequiredService<WatchlistTransferService>(), vm, new UpdatesViewModel(new AppUpdateService(new FixtureFactory(handler))), tokenUi))];
         foreach (var page in pages)
         {
             page.Width = 1160;

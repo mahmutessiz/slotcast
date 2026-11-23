@@ -101,7 +101,7 @@ Direct Inno compilation does not perform the script's token checks or generate i
 
 Run the generated setup executable on the destination PC. The installer normally installs per-user to `%LOCALAPPDATA%\Programs\SlotCast`; administrator privileges are not required. It supports an optional desktop shortcut and offers to close a running app during an update. Save your work and close SlotCast before upgrading.
 
-After installation, place the destination's `appsettings.local.json` alongside `SlotCast.exe` and restart the app. Configure an application token there or through the environment; credentials are not part of the installer or watchlist backup. Without configuration, saved local data remains available, but provider-backed features need the token.
+After installation, use the token input on Home or in Settings and choose Save token. The app validates and stores the token under `%LOCALAPPDATA%\SlotCast\appsettings.local.json` and applies it immediately. Manual app-folder configuration remains supported. Configure an application token there or through the environment; credentials are not part of the installer or watchlist backup. Without configuration, saved local data remains available, but provider-backed features need the token.
 
 Test Home, search, details, the weekly calendar, watched toggles, Archive, and JSON export/import. Building the installer alone does not verify installation behavior.
 

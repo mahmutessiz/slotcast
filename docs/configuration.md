@@ -1,8 +1,16 @@
 # Configuration
 
+## In-app token setup
+
+If no AnimeSchedule token is configured, Home shows a masked token input. Paste your application token and choose **Save token**. The app verifies it with AnimeSchedule before saving. Invalid tokens or failed verification do not replace existing credentials. Settings always offers the same input to replace a token. An authentication rejection shows the setup box again.
+
+The app stores the token as plaintext JSON in `%LOCALAPPDATA%\SlotCast\appsettings.local.json` under your Windows account. It is outside the installation folder and survives updates. It is not included in watchlist exports or installers. The token is not prefilled or displayed in the UI.
+
+A token saved through the app takes precedence over environment variables and app-folder configuration. Saving applies to the next API request without restarting, and saving on Home refreshes its feeds. Settings changes refresh the feeds when Home is opened again.
+
 ## Files and precedence
 
-SlotCast uses the .NET Generic Host configuration system. The app explicitly loads optional `appsettings.local.json` from `AppContext.BaseDirectory` and then environment variables, so environment variables override the local file. Configuration is read at startup; restart after changing credentials.
+SlotCast uses the .NET Generic Host configuration system. The app explicitly loads optional `appsettings.local.json` from `AppContext.BaseDirectory` and then environment variables, so environment variables override the local file. This describes fallback file/environment configuration. Restart after manually changing those values; tokens saved through the app take effect immediately and override this fallback.
 
 The tracked `appsettings.json` contains public configuration and an empty AnimeSchedule token. Keep private values in ignored `appsettings.local.json`:
 
@@ -47,6 +55,6 @@ A client ID is public application identification. It is not an AnimeSchedule tok
 - The installer script rejects a nonempty `AnimeScheduleApiToken` in published `appsettings.json`.
 - The installer includes only `SlotCast.exe` and public `appsettings.json`; it preserves an existing installed public config.
 - JSON watchlist backups never contain credentials.
-- The local credential file is plaintext. The app does not encrypt it or provide a credential editor.
+- Local credential files are plaintext. The app provides a masked token input but does not encrypt the stored JSON.
 
 Do not commit or ship a private application token. The current implementation does not provide a backend proxy or a managed credential distribution service.

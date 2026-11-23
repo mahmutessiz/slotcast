@@ -14,10 +14,12 @@ namespace SlotCast.ViewModels.Pages
         private readonly DashboardViewModel _workspace;
 
         public UpdatesViewModel Updates { get; }
-        public SettingsViewModel(WatchlistTransferService transfer, DashboardViewModel workspace, UpdatesViewModel updates)
+        public ApiTokenViewModel? Credentials { get; }
+        public SettingsViewModel(WatchlistTransferService transfer, DashboardViewModel workspace, UpdatesViewModel updates, ApiTokenViewModel? credentials = null)
         {
             _transfer = transfer;
             Updates = updates;
+            Credentials = credentials;
             _workspace = workspace;
         }
 

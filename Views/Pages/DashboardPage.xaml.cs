@@ -7,6 +7,12 @@ namespace SlotCast.Views.Pages
     {
         public HomeViewModel ViewModel { get; }
 
+        private async void OnTokenSaved(object? sender, EventArgs e)
+        {
+            await ViewModel.Workspace.ReloadAfterImportAsync();
+            await ViewModel.RefreshHomeCommand.ExecuteAsync(null);
+        }
+
         public DashboardPage(HomeViewModel viewModel)
         {
             ViewModel = viewModel;

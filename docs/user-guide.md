@@ -1,5 +1,11 @@
 # Using SlotCast
 
+## First-run token setup
+
+When AnimeSchedule is not configured, Home shows an **AnimeSchedule connection** box. Paste your application token and choose **Save token**. The app verifies it, saves it for this Windows account, and refreshes the feeds without restarting. You can replace a token in Settings. A rejected token brings the setup box back.
+
+The token stays on this PC under `%LOCALAPPDATA%\SlotCast\appsettings.local.json`; app updates retain it, and JSON watchlist backups exclude it. It is masked while entering and stored as plaintext JSON. You do not need to edit a file manually.
+
 ## Discover and add anime
 
 Open **Discover**, enter an English or Japanese title, and search. Only TV anime are included. Open a card's **Details** action to view the title inside SlotCast, or choose **+** to save it to your library. Home cards work the same way; clicking a poster opens details.
@@ -66,7 +72,7 @@ The installer download is verified before launch. SlotCast closes for installati
 
 | Problem | What to check |
 | --- | --- |
-| Search or schedule cannot load | Configure `AnimeScheduleApiToken`, restart SlotCast, and check connectivity. |
+| Search or schedule cannot load | Use the token input on Home or in Settings, save a valid token, and check connectivity. |
 | Some dates are missing or stale | Check the displayed release source and status, then use Refresh. Providers may not have published the dates yet. |
 | Calendar is empty | Switch to Full TV schedule, check the displayed week, or add anime to your library. |
 | A title disappeared from Watching | Check Archive; watching all known episodes completes it automatically. |

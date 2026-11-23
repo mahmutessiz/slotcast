@@ -103,17 +103,20 @@ namespace SlotCast
                 services.AddSingleton<AnimeLibraryService>();
                 services.AddSingleton<WatchlistTransferService>();
                 services.AddSingleton<AnimeScheduleService>();
+                services.AddSingleton<AnimeScheduleCredentialService>();
+                services.AddSingleton<ApiTokenViewModel>();
+                services.AddTransient<AnimeScheduleAuthenticationHandler>();
+                services.AddHttpClient("AnimeScheduleTokenValidation", client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(20);
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("SlotCast/1.0");
+                });
                 services.AddHttpClient("AnimeSchedule", client =>
                 {
                     client.BaseAddress = new Uri("https://animeschedule.net/api/v3/");
                     client.Timeout = TimeSpan.FromSeconds(20);
-                    var token = context.Configuration["AnimeScheduleApiToken"];
-                    if (string.IsNullOrWhiteSpace(token))
-                        throw new InvalidOperationException("Add AnimeScheduleApiToken to appsettings.local.json to search and refresh schedules.");
-                    client.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                     client.DefaultRequestHeaders.UserAgent.ParseAdd("SlotCast/1.0");
-                });
+                }).AddHttpMessageHandler<AnimeScheduleAuthenticationHandler>();
             }).Build();
 
         /// <summary>

@@ -42,7 +42,9 @@ Use a self-contained Windows x64 installer built from this repository, or build 
 
 SlotCast does not ask users to sign in to SIMKL or AnimeSchedule. **AnimeSchedule features still require an application API token** configured on the device. The installer deliberately excludes the developer's private token.
 
-Create `appsettings.local.json` alongside `SlotCast.exe` (or in the repository root when developing):
+On first launch, paste your token into the **AnimeSchedule connection** box on Home and choose **Save token**. SlotCast validates it, saves it on your PC, and refreshes immediately. You can replace it later in Settings. The saved file is `%LOCALAPPDATA%\SlotCast\appsettings.local.json`, separate from the application folder; updates retain it.
+
+For manual or development configuration, you can still create `appsettings.local.json` alongside `SlotCast.exe` (or in the repository root when developing):
 
 ```json
 {
@@ -50,7 +52,7 @@ Create `appsettings.local.json` alongside `SlotCast.exe` (or in the repository r
 }
 ```
 
-Restart the app after changing configuration. This local file is ignored by Git. Do not put private tokens in tracked `appsettings.json` or distribute them in a public release.
+Saving through the app takes effect immediately. Restart after manually changing configuration files. This local file is ignored by Git. Do not put private tokens in tracked `appsettings.json` or distribute them in a public release.
 
 SIMKL's public trending feed uses the client ID configured in `appsettings.json`. Personal SIMKL account tokens are not used. See [configuration](docs/configuration.md) for details.
 
