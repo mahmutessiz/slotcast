@@ -52,6 +52,21 @@ namespace episodeTracker
                 services.AddSingleton<DataViewModel>();
                 services.AddSingleton<SettingsPage>();
                 services.AddSingleton<SettingsViewModel>();
+
+                services.AddHttpClient("EpisodesApi", client =>
+                {
+                    client.BaseAddress = new Uri("https://api.example.com/");
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                
+                    var apiKey = context.Configuration["EpisodesApi:ApiKey"];
+                
+                    if (string.IsNullOrWhiteSpace(apiKey))
+                        throw new InvalidOperationException("The API key is missing.");
+                
+                    client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                });
+                
+                services.AddSingleton<EpisodeApiService>();
             }).Build();
 
         /// <summary>
