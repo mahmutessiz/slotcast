@@ -326,6 +326,8 @@ var uiThread = new Thread(() =>
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         application.Resources.MergedDictionaries.Add(new ThemesDictionary { Theme = ApplicationTheme.Dark });
         application.Resources.MergedDictionaries.Add(new ControlsDictionary());
+        Check(application.TryFindResource("ApplicationBackgroundBrush") is Brush,
+            "WPF UI supplies the runtime application background brush");
         foreach (var poster in livePosters)
         {
             using var stream = new MemoryStream(poster.Bytes);
