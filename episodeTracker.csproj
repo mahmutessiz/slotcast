@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <AssemblyName>SlotCast</AssemblyName>
+    <RootNamespace>episodeTracker</RootNamespace>
+    <AssemblyTitle>SlotCast</AssemblyTitle>
+    <Product>SlotCast</Product>
     <TargetFramework>net10.0-windows</TargetFramework>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>wpfui-icon.ico</ApplicationIcon>

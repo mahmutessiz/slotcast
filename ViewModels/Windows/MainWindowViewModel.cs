@@ -6,7 +6,7 @@ namespace episodeTracker.ViewModels.Windows
     public partial class MainWindowViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string _applicationTitle = "WPF UI - episodeTracker";
+        private string _applicationTitle = "SlotCast";
 
         [ObservableProperty]
         private ObservableCollection<object> _menuItems = new()

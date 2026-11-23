@@ -26,7 +26,7 @@ namespace episodeTracker.ViewModels.Pages
         private void InitializeViewModel()
         {
             CurrentTheme = ApplicationThemeManager.GetAppTheme();
-            AppVersion = $"UiDesktopApp1 - {GetAssemblyVersion()}";
+            AppVersion = $"SlotCast - {GetAssemblyVersion()}";
 
             _isInitialized = true;
         }

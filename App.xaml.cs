@@ -63,7 +63,7 @@ namespace episodeTracker
                         throw new InvalidOperationException("SIMKL Client ID is missing.");
                 
                     client.DefaultRequestHeaders.Add("simkl-api-key", apiKey);
-                    client.DefaultRequestHeaders.UserAgent.ParseAdd("episode-tracker/1.0");
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("slotcast/1.0");
                 });
                 
                 services.AddSingleton<SimklService>();

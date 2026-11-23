@@ -13,7 +13,7 @@ public class SimklService(IHttpClientFactory clientFactory)
         using var client = clientFactory.CreateClient("Simkl");
 
         return await client.GetFromJsonAsync<SimklShow>(
-            $"tv/{simklId}?app-name=episode-tracker&app-version=1.0",
+            $"tv/{simklId}?app-name=slotcast&app-version=1.0",
             cancellationToken);
     }
 }
