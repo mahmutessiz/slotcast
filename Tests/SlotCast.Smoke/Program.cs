@@ -22,6 +22,8 @@ var folder = Path.Combine(Path.GetTempPath(), "SlotCast-Smoke-" + Guid.NewGuid()
 Directory.CreateDirectory(folder);
 var database = Path.Combine(folder, "test.db");
 var livePosters = new List<(string Label, byte[] Bytes)>();
+HomeViewModel? screenshotHome = null;
+DashboardViewModel? screenshotLibrary = null;
 var handler = new FixtureHandler();
 using (var source = CreateServices(Path.Combine(folder, "backup-source.db"), handler))
 using (var target = CreateServices(Path.Combine(folder, "backup-target.db"), handler))
@@ -301,6 +303,20 @@ if (args.Contains("--live"))
     using var imageClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
     foreach (var card in new[] { liveHome.NewReleases.First(x => x.PosterUrl is not null), liveHome.Trending.First(x => x.PosterUrl is not null) })
         livePosters.Add((card.Anime is null ? "SIMKL" : "AnimeSchedule", await imageClient.GetByteArrayAsync(card.PosterUrl)));
+    if (args.Contains("--screenshots"))
+    {
+        var screenshotStore = live.GetRequiredService<AnimeLibraryService>();
+        foreach (var card in liveHome.NewReleases.Take(3))
+            if (card.Anime is not null) await screenshotStore.AddAsync(await liveApi.DetailsAsync(card.Anime.Route));
+        var titles = await screenshotStore.GetLibraryAsync();
+        if (titles.Count > 0) await screenshotStore.ToggleWatchedAsync(titles[0].Id, 1);
+        if (titles.Count > 1) await screenshotStore.SetCompletedAsync(titles[1].Id, true);
+        screenshotLibrary = new DashboardViewModel(liveApi, screenshotStore);
+        await screenshotLibrary.OnNavigatedToAsync();
+        screenshotLibrary.ShowFullSchedule = true;
+        if (screenshotLibrary.ChangeCalendarScopeCommand.ExecutionTask is { } loading) await loading;
+        screenshotHome = liveHome;
+    }
 }
 Exception? renderError = null;
 var uiThread = new Thread(() =>
@@ -397,6 +413,37 @@ var uiThread = new Thread(() =>
         Check(targets.Count == 4 && targets.Distinct().Count() == 4, "Side navigation has four distinct page destinations");
         if (trace.ToString().Contains("Error:")) Console.WriteLine(trace.ToString());
         Check(!trace.ToString().Contains("Error:"), "Home, calendar, library, and search have no binding errors");
+        if (screenshotHome is not null && screenshotLibrary is not null)
+        {
+            var screenshotDirectory = Path.Combine(Directory.GetCurrentDirectory(), "docs", "screenshots");
+            Directory.CreateDirectory(screenshotDirectory);
+            CaptureDocumentationPage(new episodeTracker.Views.Pages.DashboardPage(screenshotHome), "home");
+            CaptureDocumentationPage(new episodeTracker.Views.Pages.CalendarPage(screenshotLibrary), "calendar");
+            CaptureDocumentationPage(new episodeTracker.Views.Pages.LibraryPage(screenshotLibrary), "library");
+            screenshotLibrary.ShowArchive = true;
+            CaptureDocumentationPage(new episodeTracker.Views.Pages.LibraryPage(screenshotLibrary), "archive");
+            void CaptureDocumentationPage(Page page, string name)
+            {
+                page.Width = 1160;
+                page.Height = 780;
+                page.Measure(new Size(1160, 780));
+                page.Arrange(new Rect(0, 0, 1160, 780));
+                // Pump WPF's dispatcher so asynchronously downloaded posters can finish.
+                var frame = new System.Windows.Threading.DispatcherFrame();
+                var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+                timer.Tick += (_, _) => { timer.Stop(); frame.Continue = false; };
+                timer.Start();
+                System.Windows.Threading.Dispatcher.PushFrame(frame);
+                page.UpdateLayout();
+                var bitmap = new RenderTargetBitmap(1160, 780, 96, 96, PixelFormats.Pbgra32);
+                bitmap.Render(page);
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using var output = File.Create(Path.Combine(screenshotDirectory, name + ".png"));
+                encoder.Save(output);
+                Console.WriteLine("Documentation screenshot: " + name);
+            }
+        }
         application.Shutdown();
     }
     catch (Exception ex) { renderError = ex; }

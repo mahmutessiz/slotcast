@@ -63,7 +63,7 @@
             <ComboBox ItemsSource="{Binding ViewModel.ScheduleChoices}" SelectedItem="{Binding ViewModel.SelectedSchedule}" Width="185" ToolTip="Subtitle schedules may fall back to Japanese broadcasts; each card labels its source." Margin="0,0,8,8" VerticalAlignment="Center" />
             <ui:Button Content="Apply" Command="{Binding ViewModel.ChangeScheduleCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
             <ui:Button Content="Refresh" Command="{Binding ViewModel.RefreshCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
-            <ui:Button Content="+" ToolTip="Add anime" Appearance="Primary" Background="#567AEA" Foreground="White" Width="36" Command="{Binding ViewModel.DiscoverCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
+            <ui:Button ToolTip="Add anime" AutomationProperties.Name="Add anime" Appearance="Primary" Background="#567AEA" Foreground="White" Width="36" Height="32" MinWidth="0" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding ViewModel.DiscoverCommand}" Margin="0,0,8,8" VerticalAlignment="Center"><ui:SymbolIcon Symbol="Add16" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" /></ui:Button>
           </WrapPanel>
           <ScrollViewer x:Name="WeekScroller" Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" CanContentScroll="False">
             <ItemsControl x:Name="WeekItems" ItemsSource="{Binding ViewModel.CalendarDays}" MinWidth="1680" Width="{Binding ViewportWidth, ElementName=WeekScroller}">
@@ -109,7 +109,15 @@
                                       <Button Style="{StaticResource PosterWatchButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4"
                                               ToolTip="{Binding ActionLabel}" AutomationProperties.Name="{Binding ActionLabel}" IsEnabled="{Binding CanAct}"
                                               Command="{Binding DataContext.ViewModel.ToggleCalendarEpisodeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
-                                        <TextBlock Text="{Binding WatchIcon}" FontSize="19" FontFamily="Segoe UI" FontWeight="SemiBold" />
+                                        <ui:SymbolIcon FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                          <ui:SymbolIcon.Style><Style TargetType="ui:SymbolIcon">
+                                            <Setter Property="Symbol" Value="Circle16" />
+                                            <Style.Triggers>
+                                              <DataTrigger Binding="{Binding IsWatched}" Value="True"><Setter Property="Symbol" Value="Checkmark16" /></DataTrigger>
+                                              <DataTrigger Binding="{Binding IsTracked}" Value="False"><Setter Property="Symbol" Value="Add16" /></DataTrigger>
+                                            </Style.Triggers>
+                                          </Style></ui:SymbolIcon.Style>
+                                        </ui:SymbolIcon>
                                       </Button>
                                     </Grid>
                                   </Border>

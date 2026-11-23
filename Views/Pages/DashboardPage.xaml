@@ -30,8 +30,10 @@
                             <DockPanel LastChildFill="True">
                                 <ui:Button DockPanel.Dock="Right" Content="Details" ToolTip="View anime details" Margin="4,0,0,0" Padding="8,4"
                                            Command="{Binding DataContext.ViewModel.OpenCardDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
-                                <ui:Button Content="+" ToolTip="{Binding ActionLabel}" Width="32" HorizontalAlignment="Left" Background="#567AEA" Foreground="White" Padding="8,4"
-                                           Command="{Binding DataContext.ViewModel.AddFromHomeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                <ui:Button ToolTip="{Binding ActionLabel}" AutomationProperties.Name="{Binding ActionLabel}" Width="32" Height="32" MinWidth="0" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="#567AEA" Foreground="White" Padding="0"
+                                           Command="{Binding DataContext.ViewModel.AddFromHomeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
+                                    <ui:SymbolIcon Symbol="Add16" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </ui:Button>
                             </DockPanel>
                         </StackPanel>
                     </StackPanel>
