@@ -26,10 +26,10 @@ namespace episodeTracker.Models
 
     public class SimklAiringEpisode
     {
-        public int Season { get; set; }
-
+        public int? Season { get; set; }
         public int Episode { get; set; }
-
+        public string? Title { get; set; }
+        public int? Runtime { get; set; }
         public string Url { get; set; } = "";
     }
 }
