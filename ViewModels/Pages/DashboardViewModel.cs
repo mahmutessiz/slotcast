@@ -72,7 +72,32 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
         [new("English subtitles", "sub"), new("Japanese broadcast", "raw"), new("English dub", "dub")];
     [ObservableProperty] private ScheduleChoice _selectedSchedule = new("English subtitles", "sub");
 
-    partial void OnSelectedAnimeChanged(LibraryAnime? value) => BuildEpisodeRows();
+    private readonly Dictionary<string, LibraryEpisodeResult> _libraryEpisodeInfo = [];
+    private readonly HashSet<string> _loadingEpisodes = [];
+    private List<AnimeTimetableEntry> _savedTimetable = [];
+    partial void OnSelectedAnimeChanged(LibraryAnime? value)
+    {
+        BuildEpisodeRows();
+        if (value is not null) _ = LoadLibraryEpisodesAsync(value.Route);
+    }
+    public async Task LoadLibraryEpisodesAsync(string route, bool refresh = false)
+    {
+        while (_loadingEpisodes.Contains(route)) await Task.Delay(25);
+        if (!refresh && _libraryEpisodeInfo.TryGetValue(route, out var loaded) && !loaded.IsUnavailable) return;
+        _loadingEpisodes.Add(route);
+        BuildEpisodeRows();
+        try
+        {
+            _libraryEpisodeInfo[route] = await api.GetLibraryEpisodesAsync(route, refresh);
+            _savedTimetable = await api.GetSavedTimetableAsync(SelectedSchedule.Value);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or InvalidOperationException
+            or Microsoft.Data.Sqlite.SqliteException or DbUpdateException)
+        {
+            _libraryEpisodeInfo[route] = new([], true);
+        }
+        finally { _loadingEpisodes.Remove(route); BuildEpisodeRows(); }
+    }
     partial void OnSelectedDateChanged(DateTime value) => BuildDays();
     partial void OnShowFullScheduleChanged(bool value)
     {
@@ -288,6 +313,10 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
         FilterLibrary();
         LibrarySummary = $"{LibraryItems.Count} TV anime · {LibraryItems.Sum(x => x.WatchedEpisodes.Count)} episodes watched";
     }
+    [RelayCommand] private async Task RefreshEpisodeInformationAsync()
+    {
+        if (SelectedAnime is { } anime) await LoadLibraryEpisodesAsync(anime.Route, true);
+    }
     private DateTime GridStart => DisplayWeek;
 
     private async Task LoadCalendarAsync(bool refresh)
@@ -301,6 +330,7 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
         }
         var result = await api.GetTimetableAsync(GridStart, GridStart.AddDays(7), SelectedSchedule.Value, refresh);
         _timetable = result.Entries;
+        _savedTimetable = await api.GetSavedTimetableAsync(SelectedSchedule.Value);
         SyncStatus = result.HasMissingWeeks ? "Some weeks could not be loaded. The calendar is incomplete; try Refresh when connected."
             : result.IsStale ? "Offline or provider unavailable — showing saved schedules. Dates may have changed."
             : $"Schedule snapshots updated {result.OldestFetchUtc?.ToLocalTime():g} · {TimeZoneInfo.Local.DisplayName}";
@@ -356,19 +386,34 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
             EpisodeSummary = "Select an anime in your library.";
             return;
         }
-        var dates = _calendarEpisodes.Where(x => x.AnimeId == anime.Id).ToDictionary(x => x.Number);
+        var dates = new Dictionary<int, CalendarEpisode>();
+        foreach (var entry in _savedTimetable.Concat(_timetable).Where(x => x.Route == anime.Route && x.EpisodeDate is { Year: > 1900 } && x.EpisodeNumber > 0))
+        {
+            var first = entry.SubtractedEpisodeNumber > 0 && entry.SubtractedEpisodeNumber <= entry.EpisodeNumber ? entry.SubtractedEpisodeNumber : entry.EpisodeNumber;
+            for (var n = first; n <= entry.EpisodeNumber && n < first + 1000; n++)
+                dates[n] = new CalendarEpisode { AnimeId = anime.Id, Number = n, AirsAt = entry.EpisodeDate!.Value,
+                    AirType = entry.AirType ?? SelectedSchedule.Value, IsDelayed = entry.AiringStatus == "delayed-air" || !string.IsNullOrWhiteSpace(entry.DelayedText), DelayNote = entry.DelayedText };
+        }
+        _libraryEpisodeInfo.TryGetValue(anime.Route, out var metadata);
+        var info = (metadata?.Episodes ?? []).GroupBy(x => x.Number).ToDictionary(x => x.Key, x => x.Last());
         var max = Math.Max(anime.TotalEpisodes, Math.Max(dates.Keys.DefaultIfEmpty(0).Max(),
             anime.WatchedEpisodes.Select(x => x.EpisodeNumber).DefaultIfEmpty(0).Max()));
+        max = Math.Max(max, info.Keys.DefaultIfEmpty(0).Max());
         var watched = anime.WatchedEpisodes.Select(x => x.EpisodeNumber).ToHashSet();
         if (anime.TotalEpisodes == 0) max = Math.Max(max, watched.DefaultIfEmpty(0).Max() + 1);
         EpisodeRows = Enumerable.Range(1, Math.Min(max, 5000)).Select(number =>
         {
             dates.TryGetValue(number, out var date);
-            return new EpisodeRow { AnimeId = anime.Id, Number = number, IsWatched = watched.Contains(number),
-                CanMark = watched.Contains(number) || date is null || date.CanMark,
-                ScheduleLabel = date is null ? "No date loaded · manually track progress" : $"{date.AirsAt.ToLocalTime():g} · {date.SourceLabel} · {date.StateLabel}" };
+            info.TryGetValue(number, out var details);
+            var historicalDate = SelectedSchedule.Value != "dub" ? details?.Aired : null;
+            return new EpisodeRow { Title = details?.Title, AnimeId = anime.Id, Number = number, IsWatched = watched.Contains(number),
+                CanMark = watched.Contains(number) || (date is not null ? date.CanMark : historicalDate is null || historicalDate <= DateTimeOffset.UtcNow),
+                ScheduleLabel = date is null ? historicalDate is not null ? $"{historicalDate.Value.ToLocalTime():d} - Japanese air date"
+                    : _loadingEpisodes.Contains(anime.Route) ? "Loading episode information..."
+                    : metadata?.IsUnavailable == true ? "Episode information unavailable - manually track progress"
+                    : "Air date not announced or unavailable - manually track progress" : $"{date.AirsAt.ToLocalTime():g} · {date.SourceLabel} · {date.StateLabel}" };
         }).ToList();
-        EpisodeSummary = $"{anime.ProgressLabel} · Dates use downloaded weekly schedules. Unknown dates are not predicted.";
+        EpisodeSummary = $"{anime.ProgressLabel} · Dates from AnimeSchedule - Episode titles and Japanese air dates via Jikan/MyAnimeList.";
     }
 
     [RelayCommand]

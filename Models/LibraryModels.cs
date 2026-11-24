@@ -83,6 +83,8 @@ public sealed class CalendarDay
 
 public sealed class EpisodeRow
 {
+    public string? Title { get; init; }
+    public bool HasTitle => !string.IsNullOrWhiteSpace(Title);
     public string WatchedStatus => IsWatched ? "Watched" : "Unwatched";
     public int AnimeId { get; init; }
     public int Number { get; init; }

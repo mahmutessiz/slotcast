@@ -16,6 +16,7 @@ public sealed class AnimeDetails
     public string? Status { get; set; }
     public string? Description { get; set; }
     public string? ImageVersionRoute { get; set; }
+    public AnimeWebsites? Websites { get; set; }
     public AnimeNames? Names { get; set; }
     public List<AnimeCategory>? MediaTypes { get; set; }
     public List<AnimeCategory>? Genres { get; set; }
@@ -65,3 +66,11 @@ public sealed record ScheduleChoice(string Label, string Value)
 public sealed record CalendarScopeChoice(string Label, bool ShowAll);
 
 public sealed record TimetableResult(List<AnimeTimetableEntry> Entries, bool IsStale, bool HasMissingWeeks, DateTime? OldestFetchUtc);
+
+public sealed class AnimeWebsites
+{
+    public string? Mal { get; set; }
+}
+
+public sealed record LibraryEpisodeInfo(int Number, string? Title, DateTimeOffset? Aired);
+public sealed record LibraryEpisodeResult(List<LibraryEpisodeInfo> Episodes, bool IsUnavailable);

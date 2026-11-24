@@ -25,6 +25,7 @@
         <ui:Button Cursor="Hand" Content="Archive" Command="{Binding ViewModel.ShowCompletedLibraryCommand}" Margin="8,0,20,0" />
         <ui:Button Cursor="Hand" Content="Mark completed" Command="{Binding ViewModel.MarkCompletedCommand}" CommandParameter="{Binding ViewModel.SelectedAnime}" />
         <ui:Button Cursor="Hand" Content="Details" Command="{Binding ViewModel.OpenLibraryDetailsCommand}" CommandParameter="{Binding ViewModel.SelectedAnime}" Margin="8,0,0,0" />
+        <ui:Button Cursor="Hand" Content="Refresh episodes" Command="{Binding ViewModel.RefreshEpisodeInformationCommand}" Margin="8,0,0,0" />
         <ui:Button Cursor="Hand" Content="Remove" Command="{Binding ViewModel.RemoveAnimeCommand}" CommandParameter="{Binding ViewModel.SelectedAnime}" Margin="8,0,0,0" />
       </WrapPanel>
       <Grid Grid.Row="1">
@@ -89,6 +90,7 @@
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,12,5" Visibility="{Binding HasTitle, Converter={StaticResource BoolVisibility}}" />
                   <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
                   <TextBlock Text="{Binding WatchedStatus}" Margin="0,4,0,0">
                     <TextBlock.Style>
@@ -113,6 +115,6 @@
         </ListBox>
       </Grid>
     </Grid>
-    <TextBlock Grid.Row="3" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,10,0,0">Data from <Hyperlink Command="{Binding ViewModel.OpenSourceCommand}">AnimeSchedule.net</Hyperlink></TextBlock>
+    <TextBlock Grid.Row="3" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,10,0,0">Data from <Hyperlink Command="{Binding ViewModel.OpenSourceCommand}">AnimeSchedule.net</Hyperlink> - Episode titles and Japanese air dates: Jikan / MyAnimeList</TextBlock>
   </Grid>
 </Page>

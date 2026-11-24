@@ -115,6 +115,67 @@ public sealed class AnimeScheduleService(IHttpClientFactory clients, IDbContextF
         finally { _gate.Release(); }
     }
 
+    private readonly SemaphoreSlim _episodeGate = new(1, 1);
+    private DateTimeOffset _lastEpisodeRequest;
+
+    public async Task<LibraryEpisodeResult> GetLibraryEpisodesAsync(string route, bool refresh = false)
+    {
+        await _episodeGate.WaitAsync();
+        try
+        {
+            await using var db = await factory.CreateDbContextAsync();
+            var key = "episodes/" + route;
+            var cache = await db.Timetables.FindAsync(key);
+            if (!refresh && cache is not null && DateTime.UtcNow - cache.FetchedUtc < TimeSpan.FromHours(6))
+                return new(JsonSerializer.Deserialize<List<LibraryEpisodeInfo>>(cache.Json, JsonOptions) ?? [], false);
+            try
+            {
+                var anime = await DetailsAsync(route);
+                if (!Uri.TryCreate(anime.Websites?.Mal, UriKind.Absolute, out var mal)
+                    || mal.Host is not ("myanimelist.net" or "www.myanimelist.net")
+                    || mal.Segments.Length < 3 || mal.Segments[1] != "anime/"
+                    || !int.TryParse(mal.Segments[2].Trim('/'), out var id) || id <= 0)
+                    return new([], false);
+                var episodes = new List<LibraryEpisodeInfo>();
+                using var client = clients.CreateClient("EpisodeMetadata");
+                for (var page = 1; ; page++)
+                {
+                    var wait = TimeSpan.FromMilliseconds(400) - (DateTimeOffset.UtcNow - _lastEpisodeRequest);
+                    if (wait > TimeSpan.Zero) await Task.Delay(wait);
+                    _lastEpisodeRequest = DateTimeOffset.UtcNow;
+                    using var response = await client.GetAsync($"https://api.jikan.moe/v4/anime/{id}/episodes?page={page}");
+                    response.EnsureSuccessStatusCode();
+                    using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                    foreach (var item in json.RootElement.GetProperty("data").EnumerateArray())
+                    {
+                        var title = item.TryGetProperty("title", out var name) && name.ValueKind == JsonValueKind.String ? name.GetString() : null;
+                        var aired = item.TryGetProperty("aired", out var date) && date.ValueKind == JsonValueKind.String
+                            && date.TryGetDateTimeOffset(out var value) ? value : (DateTimeOffset?)null;
+                        episodes.Add(new(item.GetProperty("mal_id").GetInt32(), title, aired));
+                    }
+                    if (!json.RootElement.GetProperty("pagination").GetProperty("has_next_page").GetBoolean()) break;
+                }
+                if (cache is null) { cache = new TimetableCache { Key = key }; db.Timetables.Add(cache); }
+                cache.Json = JsonSerializer.Serialize(episodes, JsonOptions);
+                cache.FetchedUtc = DateTime.UtcNow;
+                await db.SaveChangesAsync();
+                return new(episodes, false);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or InvalidOperationException)
+            {
+                return new(cache is null ? [] : JsonSerializer.Deserialize<List<LibraryEpisodeInfo>>(cache.Json, JsonOptions) ?? [], true);
+            }
+        }
+        finally { _episodeGate.Release(); }
+    }
+
+    public async Task<List<AnimeTimetableEntry>> GetSavedTimetableAsync(string airType)
+    {
+        await using var db = await factory.CreateDbContextAsync();
+        var snapshots = await db.Timetables.Where(x => x.Key.StartsWith(airType + "/")).OrderBy(x => x.FetchedUtc).ToListAsync();
+        return snapshots.SelectMany(x => JsonSerializer.Deserialize<List<AnimeTimetableEntry>>(x.Json, JsonOptions) ?? []).ToList();
+    }
+
     private static void CheckResponse(HttpResponseMessage response)
     {
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)

@@ -102,6 +102,7 @@ namespace SlotCast
                     options.UseSqlite($"Data Source={SlotCastPaths.DatabaseFile}"));
                 services.AddSingleton<AnimeLibraryService>();
                 services.AddSingleton<WatchlistTransferService>();
+                services.AddHttpClient("EpisodeMetadata", client => client.Timeout = TimeSpan.FromSeconds(20));
                 services.AddSingleton<AnimeScheduleService>();
                 services.AddSingleton<AnimeScheduleCredentialService>();
                 services.AddSingleton<ApiTokenViewModel>();

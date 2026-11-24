@@ -208,6 +208,10 @@ Check(home.AiringToday.Count == 1 && home.AiringToday[0].AirsAt?.ToLocalTime().D
 Check(home.Trending.Count == 1 && home.Trending[0].Anime is null, "Home uses public TV-only trending and requires explicit season matching");
 await home.AddFromHomeCommand.ExecuteAsync(home.NewReleases[0]);
 Check(vm.LibraryItems.Count == 1 && home.NewReleases[0].IsInWatchlist, "New releases can be added and immediately show watchlist status");
+await vm.LoadLibraryEpisodesAsync("test-tv");
+Check(vm.EpisodeRows.Single(x => x.Number == 1).Title == "A New Beginning", "Watchlist loads episode titles by exact linked MAL ID");
+Check(vm.EpisodeRows.Single(x => x.Number == 5).ScheduleLabel.Contains("Japanese air date"), "Historical dates load independently of the displayed calendar week");
+Check(!vm.EpisodeRows.Single(x => x.Number == 5).HasTitle && vm.EpisodeRows.Single(x => x.Number == 4).Title == "The Return", "Missing titles stay hidden and additional episode pages are loaded");
 vm.ShowFullSchedule = true;
 if (vm.ChangeCalendarScopeCommand.ExecutionTask is { } fullLoad) await fullLoad;
 var fullSchedule = vm.CalendarDays.SelectMany(x => x.Episodes).ToList();
@@ -504,9 +508,16 @@ sealed class FixtureHandler : HttpMessageHandler
         var path = request.RequestUri!.AbsolutePath;
         Requests.Add(request.RequestUri.PathAndQuery);
         var tv = new AnimeDetails { Route = "test-tv", Title = "Test TV", Description = "<b>An anime synopsis.</b>", Episodes = 4, Year = 2026,
-            Status = "Ongoing", MediaTypes = [new AnimeCategory { Route = "tv" }] };
+            Status = "Ongoing", Websites = new AnimeWebsites { Mal = "https://myanimelist.net/anime/123/test-tv" }, MediaTypes = [new AnimeCategory { Route = "tv" }] };
         string json;
-        if (path.Contains("timetables"))
+        if (request.RequestUri.Host == "api.jikan.moe")
+        {
+            var next = request.RequestUri.Query.Contains("page=2");
+            json = next
+                ? """{"data":[{"mal_id":4,"title":"The Return","aired":"2020-01-22T00:00:00+00:00"}],"pagination":{"has_next_page":false}}"""
+                : """{"data":[{"mal_id":1,"title":"A New Beginning","aired":"2020-01-01T00:00:00+00:00"},{"mal_id":5,"title":null,"aired":"2020-01-08T00:00:00+00:00"}],"pagination":{"has_next_page":true}}""";
+        }
+        else if (path.Contains("timetables"))
         {
             TimetableRequests++;
             json = JsonSerializer.Serialize(new[]
