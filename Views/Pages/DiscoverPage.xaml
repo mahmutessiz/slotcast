@@ -1,4 +1,4 @@
-<Page x:Class="SlotCast.Views.Pages.DiscoverPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" ScrollViewer.CanContentScroll="False" Title="Discover" Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+<Page x:Class="SlotCast.Views.Pages.DiscoverPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:services="clr-namespace:SlotCast.Services" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" ScrollViewer.CanContentScroll="False" Title="Discover" Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
   <Page.Resources>
     <ResourceDictionary Source="AnimeStyles.xaml" />
   </Page.Resources>
@@ -45,7 +45,7 @@
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Border CornerRadius="4" Background="{DynamicResource CardStrokeColorDefaultBrush}" Width="50" Height="72" VerticalAlignment="Top">
-                    <Image Source="{Binding PosterUrl}" Stretch="Uniform" />
+                    <Image services:PosterCache.Url="{Binding PosterUrl}" Stretch="Uniform" />
                 </Border>
                 <StackPanel Grid.Column="1" Margin="12,0">
                   <TextBlock Text="{Binding DisplayTitle}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />

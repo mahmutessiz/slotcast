@@ -21,6 +21,9 @@ public sealed class AnimeDetails
     public List<AnimeCategory>? MediaTypes { get; set; }
     public List<AnimeCategory>? Genres { get; set; }
     public List<AnimeCategory>? Studios { get; set; }
+    public DateTimeOffset? Premier { get; set; }
+    public DateTimeOffset? SubPremier { get; set; }
+    public DateTimeOffset? DubPremier { get; set; }
     public int LengthMin { get; set; }
     public bool IsTv => MediaTypes?.Any(x => x.Route == "tv") == true;
     public string DisplayTitle => string.IsNullOrWhiteSpace(Names?.English) ? Title : Names.English;

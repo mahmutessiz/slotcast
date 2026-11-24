@@ -1,4 +1,4 @@
-<Page x:Class="SlotCast.Views.Pages.CalendarPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" ScrollViewer.CanContentScroll="False" Title="Calendar" Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+<Page x:Class="SlotCast.Views.Pages.CalendarPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:services="clr-namespace:SlotCast.Services" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" ScrollViewer.CanContentScroll="False" Title="Calendar" Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
   <Page.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="AnimeStyles.xaml" /></ResourceDictionary.MergedDictionaries>
@@ -105,7 +105,7 @@
                                     <Border.ToolTip><ToolTip Content="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" ContentTemplate="{StaticResource EpisodePosterInfo}" /></Border.ToolTip>
                                     <Grid>
                                       <Button Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch" Command="{Binding DataContext.ViewModel.OpenCalendarDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" AutomationProperties.Name="View anime details"><Grid><TextBlock Text="No poster" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource Secondary}" />
-                                      <Image Source="{Binding BannerUrl}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                                      <Image services:PosterCache.Url="{Binding BannerUrl}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
                                       </Grid></Button><Button Cursor="Hand" Style="{StaticResource PosterWatchButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4"
                                               ToolTip="{Binding ActionLabel}" AutomationProperties.Name="{Binding ActionLabel}" IsEnabled="{Binding CanAct}"
                                               Command="{Binding DataContext.ViewModel.ToggleCalendarEpisodeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">

@@ -75,6 +75,8 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
     private readonly Dictionary<string, LibraryEpisodeResult> _libraryEpisodeInfo = [];
     private readonly HashSet<string> _loadingEpisodes = [];
     private List<AnimeTimetableEntry> _savedTimetable = [];
+    private string _savedTimetableAirType = "";
+    private readonly HashSet<string> _loadedLibrarySchedules = [];
     partial void OnSelectedAnimeChanged(LibraryAnime? value)
     {
         BuildEpisodeRows();
@@ -83,13 +85,27 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
     public async Task LoadLibraryEpisodesAsync(string route, bool refresh = false)
     {
         while (_loadingEpisodes.Contains(route)) await Task.Delay(25);
-        if (!refresh && _libraryEpisodeInfo.TryGetValue(route, out var loaded) && !loaded.IsUnavailable) return;
+        if (!refresh && _libraryEpisodeInfo.TryGetValue(route, out var loaded) && !loaded.IsUnavailable && _loadedLibrarySchedules.Contains(SelectedSchedule.Value + "/" + route)) return;
         _loadingEpisodes.Add(route);
         BuildEpisodeRows();
         try
         {
-            _libraryEpisodeInfo[route] = await api.GetLibraryEpisodesAsync(route, refresh);
-            _savedTimetable = await api.GetSavedTimetableAsync(SelectedSchedule.Value);
+            var airType = SelectedSchedule.Value;
+            async Task LoadDatesAsync()
+            {
+                await api.LoadAnimeScheduleHistoryAsync(route, airType, entries =>
+                {
+                    if (SelectedSchedule.Value != airType) return;
+                    if (_savedTimetableAirType != airType) _savedTimetable = [];
+                    _savedTimetableAirType = airType;
+                    _savedTimetable = _savedTimetable.Concat(entries.Where(x => LibraryItems.Any(a => a.Route == x.Route)))
+                        .GroupBy(x => new { x.Route, x.EpisodeNumber, x.AirType }).Select(x => x.Last()).ToList();
+                    BuildEpisodeRows();
+                }, refresh);
+                _loadedLibrarySchedules.Add(airType + "/" + route);
+            }
+            async Task LoadTitlesAsync() => _libraryEpisodeInfo[route] = await api.GetLibraryEpisodesAsync(route, refresh);
+            await Task.WhenAll(LoadDatesAsync(), LoadTitlesAsync());
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or InvalidOperationException
             or Microsoft.Data.Sqlite.SqliteException or DbUpdateException)
@@ -104,6 +120,16 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
         if (_initialized) ChangeCalendarScopeCommand.Execute(null);
     }
 
+    public async Task InitializeHomeWorkspaceAsync()
+    {
+        if (_initialized) return;
+        await library.InitializeAsync();
+        var preference = await library.GetSchedulePreferenceAsync();
+        SelectedSchedule = ScheduleChoices.FirstOrDefault(x => x.Value == preference) ?? ScheduleChoices[0];
+        await ReloadLibraryAsync();
+        _initialized = true;
+        _refreshAfterImport = true;
+    }
     public async Task OnNavigatedToAsync()
     {
         if (_initialized)
@@ -213,7 +239,7 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
     private async Task RefreshAsync() => await RunAsync(async () =>
     {
         foreach (var anime in LibraryItems.ToList())
-            await library.AddAsync(await api.DetailsAsync(anime.Route));
+            await library.AddAsync(await api.DetailsAsync(anime.Route, refresh: true));
         await ReloadLibraryAsync();
         await LoadCalendarAsync(true);
     }, "Refreshing anime and episode schedules…");
@@ -331,6 +357,7 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
         var result = await api.GetTimetableAsync(GridStart, GridStart.AddDays(7), SelectedSchedule.Value, refresh);
         _timetable = result.Entries;
         _savedTimetable = await api.GetSavedTimetableAsync(SelectedSchedule.Value);
+        _savedTimetableAirType = SelectedSchedule.Value;
         SyncStatus = result.HasMissingWeeks ? "Some weeks could not be loaded. The calendar is incomplete; try Refresh when connected."
             : result.IsStale ? "Offline or provider unavailable — showing saved schedules. Dates may have changed."
             : $"Schedule snapshots updated {result.OldestFetchUtc?.ToLocalTime():g} · {TimeZoneInfo.Local.DisplayName}";
@@ -387,7 +414,7 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
             return;
         }
         var dates = new Dictionary<int, CalendarEpisode>();
-        foreach (var entry in _savedTimetable.Concat(_timetable).Where(x => x.Route == anime.Route && x.EpisodeDate is { Year: > 1900 } && x.EpisodeNumber > 0))
+        foreach (var entry in (_savedTimetableAirType == SelectedSchedule.Value ? _savedTimetable : []).Concat(_timetable).Where(x => x.Route == anime.Route && x.EpisodeDate is { Year: > 1900 } && x.EpisodeNumber > 0))
         {
             var first = entry.SubtractedEpisodeNumber > 0 && entry.SubtractedEpisodeNumber <= entry.EpisodeNumber ? entry.SubtractedEpisodeNumber : entry.EpisodeNumber;
             for (var n = first; n <= entry.EpisodeNumber && n < first + 1000; n++)

@@ -36,19 +36,46 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
     [ObservableProperty] private bool _hasMoreSeasonAnime;
     [ObservableProperty] private string _seasonStatus = "TV anime premiering this season";
 
-    public async Task OnNavigatedToAsync()
+    public Task? LoadingTask { get; private set; }
+    public Task OnNavigatedToAsync()
+    {
+        if (LoadingTask is not { IsCompleted: false }) LoadingTask = LoadHomeSafelyAsync();
+        return Task.CompletedTask;
+    }
+    private async Task LoadHomeSafelyAsync()
+    {
+        try { await LoadHomeAsync(); }
+        catch (Exception ex) when (IsFeedError(ex) || ex is Microsoft.Data.Sqlite.SqliteException)
+        { ErrorMessage = "Could not load anime. Please try Refresh."; }
+    }
+    private async Task LoadHomeAsync()
     {
         if (Credentials is { NeedsToken: false } && _credentialRevision != Credentials.Revision)
             await workspace.ReloadAfterImportAsync();
-        await workspace.OnNavigatedToAsync();
+        await workspace.InitializeHomeWorkspaceAsync();
+        if (!Cards.Any())
+        {
+            var snapshot = await api.ReadCacheAsync<HomeFeedSnapshot>("home/" + workspace.SelectedSchedule.Value);
+            if (snapshot is not null && snapshot.SeasonLabel == CurrentSeasonLabel)
+            {
+                NewReleases = snapshot.NewReleases; Trending = snapshot.Trending; Upcoming = snapshot.Upcoming;
+                SeasonAnime = snapshot.SeasonAnime;
+                if (snapshot.Date == DateTime.Today) AiringToday = snapshot.AiringToday;
+                _seasonPage = snapshot.SeasonPage; _seasonTotal = snapshot.SeasonTotal;
+                HasMoreSeasonAnime = _seasonPage * 18 < _seasonTotal;
+                FeedStatus = "Showing saved anime while checking for updates.";
+            }
+        }
         UpdateWatchlistStates();
         if (DateTime.UtcNow - _loadedUtc > TimeSpan.FromHours(1) || _loadedDate != DateTime.Today
-            || _loadedAirType != workspace.SelectedSchedule.Value || _credentialRevision != (Credentials?.Revision ?? 0)) await RefreshHomeAsync();
+            || _loadedAirType != workspace.SelectedSchedule.Value || _credentialRevision != (Credentials?.Revision ?? 0)) await RefreshHomeCoreAsync(false);
     }
     public Task OnNavigatedFromAsync() => Task.CompletedTask;
 
     [RelayCommand]
-    private async Task RefreshHomeAsync()
+    private Task RefreshHomeAsync() => RefreshHomeCoreAsync(true);
+
+    private async Task RefreshHomeCoreAsync(bool forceRefresh)
     {
         if (IsBusy) return;
         IsBusy = true;
@@ -57,55 +84,78 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
         var failed = new List<string>();
         try
         {
-            try
+            async Task LoadTodayAsync()
             {
-                var schedule = await api.GetTimetableAsync(DateTime.Today, DateTime.Today.AddDays(1), workspace.SelectedSchedule.Value, false);
-                AiringToday = schedule.Entries.Where(x => x.EpisodeDate is { Year: > 1900 }
-                        && x.EpisodeDate.Value.ToLocalTime().Date == DateTime.Today && x.EpisodeNumber > 0)
-                    .GroupBy(x => new { x.Route, x.EpisodeNumber }).Select(x => x.Last())
-                    .OrderBy(x => x.EpisodeDate).Select(HomeAnimeCard.FromTimetable).ToList();
-                AiringTodayStatus = schedule.IsStale || schedule.HasMissingWeeks ? "Saved schedule · some updates are unavailable"
-                    : AiringToday.Count == 0 ? "No TV anime scheduled for today" : $"{AiringToday.Count} airings · Times shown in your device's timezone";
-                if (schedule.IsStale || schedule.HasMissingWeeks) failed.Add("today's schedule");
+                try
+                {
+                    var schedule = await api.GetTimetableAsync(DateTime.Today, DateTime.Today.AddDays(1), workspace.SelectedSchedule.Value, forceRefresh);
+                    AiringToday = schedule.Entries.Where(x => x.EpisodeDate is { Year: > 1900 }
+                            && x.EpisodeDate.Value.ToLocalTime().Date == DateTime.Today && x.EpisodeNumber > 0)
+                        .GroupBy(x => new { x.Route, x.EpisodeNumber }).Select(x => x.Last())
+                        .OrderBy(x => x.EpisodeDate).Select(HomeAnimeCard.FromTimetable).ToList();
+                    AiringTodayStatus = schedule.IsStale || schedule.HasMissingWeeks ? "Saved schedule · some updates are unavailable"
+                        : AiringToday.Count == 0 ? "No TV anime scheduled for today" : $"{AiringToday.Count} airings · Times shown in your device's timezone";
+                    if (schedule.IsStale || schedule.HasMissingWeeks) failed.Add("today's schedule");
+                }
+                catch (Exception ex) when (IsFeedError(ex)) { failed.Add("today's schedule"); AiringTodayStatus = "Today's schedule could not be loaded"; }
+                UpdateWatchlistStates();
             }
-            catch (Exception ex) when (IsFeedError(ex)) { failed.Add("today's schedule"); AiringTodayStatus = "Today's schedule could not be loaded"; }
-            try
+            async Task LoadSeasonAsync()
             {
-                var season = AnimeSeason.ForDate(DateTime.Today);
-                var result = await api.GetSeasonAsync(season);
-                _season = season;
-                CurrentSeasonLabel = season.Label;
-                _seasonPage = 1;
-                _seasonTotal = result.TotalAmount;
-                SeasonAnime = result.Anime.Select(HomeAnimeCard.FromAnime).ToList();
-                HasMoreSeasonAnime = _seasonPage * 18 < _seasonTotal;
-                SeasonStatus = _seasonTotal == 0 ? "No TV anime found for this season" : $"{_seasonTotal} TV anime · Sorted by popularity";
+                try
+                {
+                    var season = AnimeSeason.ForDate(DateTime.Today);
+                    var result = await api.GetSeasonAsync(season, refresh: forceRefresh);
+                    _season = season;
+                    CurrentSeasonLabel = season.Label;
+                    _seasonPage = 1;
+                    _seasonTotal = result.TotalAmount;
+                    SeasonAnime = result.Anime.Select(HomeAnimeCard.FromAnime).ToList();
+                    HasMoreSeasonAnime = _seasonPage * 18 < _seasonTotal;
+                    SeasonStatus = _seasonTotal == 0 ? "No TV anime found for this season" : $"{_seasonTotal} TV anime · Sorted by popularity";
+                }
+                catch (Exception ex) when (IsFeedError(ex)) { failed.Add("this season's anime"); }
+                UpdateWatchlistStates();
             }
-            catch (Exception ex) when (IsFeedError(ex)) { failed.Add("this season's anime"); }
-            try { NewReleases = (await api.GetReleasesAsync(false)).Select(HomeAnimeCard.FromAnime).ToList(); }
-            catch (Exception ex) when (IsFeedError(ex)) { failed.Add("new releases"); }
-            try
+            async Task LoadReleasesAsync()
             {
-                Trending = (await simkl.GetTrendingAnimesAsync()).Where(x => x.AnimeType == "tv").Take(12)
-                    .Select(x => new HomeAnimeCard
-                    {
-                        Title = x.Title,
-                        Subtitle = $"{x.Year} · {x.Watched:N0} watched today",
-                        // WPF's built-in image decoder does not support WebP on every device.
-                        PosterUrl = string.IsNullOrWhiteSpace(x.Poster) ? null
-                            : $"https://wsrv.nl/?url={Uri.EscapeDataString("https://simkl.in/posters/" + x.Poster + "_m.webp")}&output=jpg&q=90",
-                        SourceUrl = x.SimklUrl, SimklId = x.Ids?.SimklId, Overview = x.Overview
-                    }).ToList();
+                try { NewReleases = (await api.GetReleasesAsync(false, refresh: forceRefresh)).Select(HomeAnimeCard.FromAnime).ToList(); }
+                catch (Exception ex) when (IsFeedError(ex)) { failed.Add("new releases"); }
+                UpdateWatchlistStates();
             }
-            catch (Exception ex) when (IsFeedError(ex)) { failed.Add("trending anime"); }
-            try { Upcoming = (await api.GetReleasesAsync(true)).Select(HomeAnimeCard.FromAnime).ToList(); }
-            catch (Exception ex) when (IsFeedError(ex)) { failed.Add("upcoming premieres"); }
-            _loadedUtc = failed.Count == 0 ? DateTime.UtcNow : DateTime.MinValue;
+            async Task LoadTrendingAsync()
+            {
+                try
+                {
+                    Trending = (await api.CachedAsync("simkl/trending", TimeSpan.FromMinutes(30), () => simkl.GetTrendingAnimesAsync(), forceRefresh)).Where(x => x.AnimeType == "tv").Take(12)
+                        .Select(x => new HomeAnimeCard
+                        {
+                            Title = x.Title,
+                            Subtitle = $"{x.Year} · {x.Watched:N0} watched today",
+                            // WPF's built-in image decoder does not support WebP on every device.
+                            PosterUrl = string.IsNullOrWhiteSpace(x.Poster) ? null
+                                : $"https://wsrv.nl/?url={Uri.EscapeDataString("https://simkl.in/posters/" + x.Poster + "_m.webp")}&output=jpg&q=90",
+                            SourceUrl = x.SimklUrl, SimklId = x.Ids?.SimklId, Overview = x.Overview
+                        }).ToList();
+                }
+                catch (Exception ex) when (IsFeedError(ex)) { failed.Add("trending anime"); }
+                UpdateWatchlistStates();
+            }
+            async Task LoadUpcomingAsync()
+            {
+                try { Upcoming = (await api.GetReleasesAsync(true, refresh: forceRefresh)).Select(HomeAnimeCard.FromAnime).ToList(); }
+                catch (Exception ex) when (IsFeedError(ex)) { failed.Add("upcoming premieres"); }
+                UpdateWatchlistStates();
+            }
+            await Task.WhenAll(LoadTodayAsync(), LoadSeasonAsync(), LoadReleasesAsync(), LoadTrendingAsync(), LoadUpcomingAsync());
+            _loadedUtc = DateTime.UtcNow;
             _loadedDate = DateTime.Today;
             _loadedAirType = workspace.SelectedSchedule.Value;
             FeedStatus = NewReleases.Count + Trending.Count + Upcoming.Count + AiringToday.Count + SeasonAnime.Count == 0
                 ? "No anime loaded. Check your connection and application configuration, then refresh."
                 : "TV anime only · Choose a title to add it to your library";
+            if (Cards.Any()) await api.SaveCacheAsync("home/" + workspace.SelectedSchedule.Value,
+                new HomeFeedSnapshot(DateTime.Today, CurrentSeasonLabel, NewReleases, Trending, Upcoming, AiringToday, SeasonAnime, _seasonPage, _seasonTotal));
             if (failed.Count > 0) ErrorMessage = Credentials?.NeedsToken == true ? "Add or replace your AnimeSchedule token above to load anime and schedules." : $"Could not refresh {string.Join(", ", failed)}. Try again when connected.";
         }
         finally { UpdateWatchlistStates(); IsBusy = false; }

@@ -13,7 +13,61 @@ public sealed class AnimeScheduleService(IHttpClientFactory clients, IDbContextF
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public async Task<AnimeSearchResponse> GetSeasonAsync(AnimeSeason season, int page = 1, CancellationToken ct = default)
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim> _cacheLocks = new();
+    public async Task<T?> ReadCacheAsync<T>(string key)
+    {
+        await using var db = await factory.CreateDbContextAsync();
+        var cache = await db.Timetables.FindAsync("data/" + key);
+        if (cache is null) return default;
+        try { return JsonSerializer.Deserialize<T>(cache.Json, JsonOptions); }
+        catch (JsonException) { return default; }
+    }
+    public async Task SaveCacheAsync<T>(string key, T value)
+    {
+        await using var db = await factory.CreateDbContextAsync();
+        var cache = await db.Timetables.FindAsync("data/" + key);
+        if (cache is null) { cache = new TimetableCache { Key = "data/" + key }; db.Timetables.Add(cache); }
+        cache.Json = JsonSerializer.Serialize(value, JsonOptions);
+        cache.FetchedUtc = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+    }
+    public async Task<T> CachedAsync<T>(string key, TimeSpan lifetime, Func<Task<T>> fetch, bool refresh = false)
+    {
+        var gate = _cacheLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync();
+        try
+        {
+            await using var db = await factory.CreateDbContextAsync();
+            var cache = await db.Timetables.FindAsync("data/" + key);
+            T? saved = default;
+            var hasSaved = false;
+            if (cache is not null)
+            {
+                try { saved = JsonSerializer.Deserialize<T>(cache.Json, JsonOptions); hasSaved = saved is not null; }
+                catch (JsonException) { }
+                if (!refresh && hasSaved && DateTime.UtcNow - cache.FetchedUtc < lifetime) return saved!;
+            }
+            try
+            {
+                var value = await fetch();
+                await SaveCacheAsync(key, value);
+                return value;
+            }
+            catch (Exception ex) when (hasSaved && ex is HttpRequestException or TaskCanceledException or JsonException)
+            { return saved!; }
+        }
+        finally { gate.Release(); }
+    }
+    public Task<AnimeSearchResponse> GetSeasonAsync(AnimeSeason season, int page = 1, CancellationToken ct = default, bool refresh = false) =>
+        CachedAsync($"season/{season.Year}/{season.Slug}/{page}", TimeSpan.FromHours(24), () => FetchSeasonAsync(season, page, ct), refresh);
+    public Task<List<AnimeDetails>> GetReleasesAsync(bool upcoming, CancellationToken ct = default, bool refresh = false) =>
+        CachedAsync($"releases/{upcoming}", TimeSpan.FromHours(6), () => FetchReleasesAsync(upcoming, ct), refresh);
+    public Task<AnimeSearchResponse> SearchAsync(string query, int page, CancellationToken ct = default) =>
+        CachedAsync($"search/{query.Trim().ToLowerInvariant()}/{page}", TimeSpan.FromHours(6), () => FetchSearchAsync(query, page, ct));
+    public Task<AnimeDetails> DetailsAsync(string route, CancellationToken ct = default, bool refresh = false) =>
+        CachedAsync("details/" + route, TimeSpan.FromDays(1), () => FetchDetailsAsync(route, ct), refresh);
+
+    private async Task<AnimeSearchResponse> FetchSeasonAsync(AnimeSeason season, int page = 1, CancellationToken ct = default)
     {
         if (season.Slug is not ("winter" or "spring" or "summer" or "fall") || page < 1)
             throw new ArgumentException("Invalid anime season or page.");
@@ -27,7 +81,7 @@ public sealed class AnimeScheduleService(IHttpClientFactory clients, IDbContextF
         return result;
     }
 
-    public async Task<List<AnimeDetails>> GetReleasesAsync(bool upcoming, CancellationToken ct = default)
+    private async Task<List<AnimeDetails>> FetchReleasesAsync(bool upcoming, CancellationToken ct = default)
     {
         using var client = clients.CreateClient("AnimeSchedule");
         var filter = upcoming ? "upcoming" : "ongoing";
@@ -39,7 +93,7 @@ public sealed class AnimeScheduleService(IHttpClientFactory clients, IDbContextF
         return (result.Anime ?? []).Where(x => x.IsTv).Take(12).ToList();
     }
 
-    public async Task<AnimeSearchResponse> SearchAsync(string query, int page, CancellationToken ct = default)
+    private async Task<AnimeSearchResponse> FetchSearchAsync(string query, int page, CancellationToken ct = default)
     {
         using var client = clients.CreateClient("AnimeSchedule");
         using var response = await client.GetAsync($"anime?q={Uri.EscapeDataString(query.Trim())}&media-types=tv&mt=all&page={page}", ct);
@@ -50,7 +104,7 @@ public sealed class AnimeScheduleService(IHttpClientFactory clients, IDbContextF
         return result;
     }
 
-    public async Task<AnimeDetails> DetailsAsync(string route, CancellationToken ct = default)
+    private async Task<AnimeDetails> FetchDetailsAsync(string route, CancellationToken ct = default)
     {
         using var client = clients.CreateClient("AnimeSchedule");
         using var response = await client.GetAsync($"anime/{Uri.EscapeDataString(route)}", ct);
@@ -80,7 +134,7 @@ public sealed class AnimeScheduleService(IHttpClientFactory clients, IDbContextF
                 var key = $"{airType}/{year}/{week}";
                 await using var db = await factory.CreateDbContextAsync();
                 var cache = await db.Timetables.FindAsync(key);
-                if (refresh || cache is null || DateTime.UtcNow - cache.FetchedUtc > TimeSpan.FromHours(6))
+                if (refresh || cache is null || DateTime.UtcNow - cache.FetchedUtc > (monday.AddDays(7) < DateTime.UtcNow.AddDays(-14) ? TimeSpan.FromDays(30) : TimeSpan.FromHours(1)))
                 {
                     try
                     {
@@ -126,7 +180,7 @@ public sealed class AnimeScheduleService(IHttpClientFactory clients, IDbContextF
             await using var db = await factory.CreateDbContextAsync();
             var key = "episodes/" + route;
             var cache = await db.Timetables.FindAsync(key);
-            if (!refresh && cache is not null && DateTime.UtcNow - cache.FetchedUtc < TimeSpan.FromHours(6))
+            if (!refresh && cache is not null && DateTime.UtcNow - cache.FetchedUtc < TimeSpan.FromDays(7))
                 return new(JsonSerializer.Deserialize<List<LibraryEpisodeInfo>>(cache.Json, JsonOptions) ?? [], false);
             try
             {
@@ -167,6 +221,25 @@ public sealed class AnimeScheduleService(IHttpClientFactory clients, IDbContextF
             }
         }
         finally { _episodeGate.Release(); }
+    }
+
+    public async Task LoadAnimeScheduleHistoryAsync(string route, string airType, Action<List<AnimeTimetableEntry>> onLoaded, bool refresh = false)
+    {
+        // Always publish saved dates first, independently of optional episode-title providers.
+        onLoaded(await GetSavedTimetableAsync(airType));
+        var anime = await DetailsAsync(route);
+        var premiere = airType == "dub" ? anime.DubPremier : airType == "sub" ? anime.SubPremier ?? anime.Premier : anime.Premier;
+        if (premiere is null) return;
+        var start = premiere.Value.ToLocalTime().Date;
+        // Query real timetable records; never manufacture dates by adding seven days per episode.
+        var end = DateTime.Today.AddDays(14);
+        if (anime.Episodes > 0) end = new[] { end, start.AddDays(anime.Episodes * 8d + 90) }.Min();
+        for (var chunk = start; chunk < end; chunk = chunk.AddDays(56))
+        {
+            var result = await GetTimetableAsync(chunk, new[] { chunk.AddDays(56), end }.Min(), airType, refresh);
+            onLoaded(result.Entries);
+            if (result.HasMissingWeeks) break;
+        }
     }
 
     public async Task<List<AnimeTimetableEntry>> GetSavedTimetableAsync(string airType)

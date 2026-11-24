@@ -1,6 +1,6 @@
 <Page x:Class="SlotCast.Views.Pages.AnimeDetailsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:services="clr-namespace:SlotCast.Services"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       Title="Anime details" ScrollViewer.CanContentScroll="False"
       Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
@@ -15,7 +15,7 @@
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="220" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                 <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Height="315" VerticalAlignment="Top">
-                    <Image Source="{Binding ViewModel.PosterUrl}" Stretch="Uniform" />
+                    <Image services:PosterCache.Url="{Binding ViewModel.PosterUrl}" Stretch="Uniform" />
                 </Border>
                 <StackPanel Grid.Column="1" Margin="28,0,0,0">
                     <TextBlock Text="{Binding ViewModel.Title}" FontSize="28" FontWeight="SemiBold" TextWrapping="Wrap" />

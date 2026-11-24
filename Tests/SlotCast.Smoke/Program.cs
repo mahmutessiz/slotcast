@@ -198,6 +198,16 @@ Check(home.NewReleases.Count == 1 && home.Upcoming.Count == 1, "Home release fee
 Check(home.CurrentSeasonLabel == AnimeSeason.ForDate(DateTime.Today).Label && home.SeasonAnime.Count == 1,
     "Home determines the current anime season from local date and excludes OVAs");
 Check(home.HasMoreSeasonAnime, "Season section offers additional pages");
+var cacheRequests = handler.Requests.Count;
+using (var cacheServices = CreateServices(database, handler))
+{
+    var cachedApi = cacheServices.GetRequiredService<AnimeScheduleService>();
+    await cachedApi.GetSeasonAsync(AnimeSeason.ForDate(DateTime.Today));
+    await cachedApi.GetReleasesAsync(false);
+    var snapshot = await cachedApi.ReadCacheAsync<HomeFeedSnapshot>("home/" + vm.SelectedSchedule.Value);
+    Check(snapshot?.NewReleases.Count == 1 && handler.Requests.Count == cacheRequests, "Feed and Home snapshots persist across service restarts without duplicate HTTP requests");
+}
+
 await home.LoadMoreSeasonCommand.ExecuteAsync(null);
 Check(home.SeasonAnime.Count == 2 && !home.HasMoreSeasonAnime, "Load more appends remaining seasonal TV anime");
 var expectedSeason = AnimeSeason.ForDate(DateTime.Today);
@@ -223,6 +233,9 @@ Check(!unsaved.CanMark && unsaved.CanAct && unsaved.ActionLabel == "+" && unsave
 await vm.ToggleCalendarEpisodeCommand.ExecuteAsync(unsaved);
 Check(vm.LibraryItems.Count == 2 && vm.LibraryItems.Any(x => x.Route == unsaved.Route),
     "Full schedule plus action saves anime without marking it watched");
+vm.SelectedAnime = vm.LibraryItems.Single(x => x.Route == "untracked-tv");
+await vm.LoadLibraryEpisodesAsync("untracked-tv");
+Check(vm.EpisodeRows.Single(x => x.Number == 6).ScheduleLabel.Contains("English subtitles"), "Watchlist downloads real historical timetable dates even with no MAL link or episode titles");
 vm.ShowFullSchedule = false;
 if (vm.ChangeCalendarScopeCommand.ExecutionTask is { } libraryLoad) await libraryLoad;
 Check(vm.CalendarDays.SelectMany(x => x.Episodes).All(x => x.IsTracked), "Library calendar filters out unsaved titles");
@@ -400,6 +413,9 @@ var uiThread = new Thread(() =>
         presenter.Arrange(new Rect(0, 0, 1160, 780));
         presenter.UpdateLayout();
         var homeScroll = (ScrollViewer)framedHome.FindName("HomeScroller");
+home.IsBusy = true; home.Workspace.IsBusy = true;
+Check(homeScroll.IsEnabled, "Home remains scrollable while feeds and workspace are loading");
+home.IsBusy = false; home.Workspace.IsBusy = false;
         Console.WriteLine($"Navigation scroll measurement: page={framedHome.ActualHeight}, viewport={homeScroll.ViewportHeight}, extent={homeScroll.ExtentHeight}, loaded={framedHome.IsLoaded}");
         Check(!presenter.IsDynamicScrollViewerEnabled, "Navigation frame does not wrap Home in a second scroll container");
         Check(homeScroll.ScrollableHeight > 0, "Home has a vertical scroll range inside the real navigation frame");
@@ -526,6 +542,8 @@ sealed class FixtureHandler : HttpMessageHandler
                 new AnimeTimetableEntry { Route = tv.Route, EpisodeNumber = 3, SubtractedEpisodeNumber = 2, EpisodeDate = AirDate, AirType = "sub", MediaTypes = tv.MediaTypes },
                 new AnimeTimetableEntry { Route = tv.Route, EpisodeNumber = 4, EpisodeDate = new DateTimeOffset(DateTime.Today.AddDays(2)), AirType = "sub", MediaTypes = tv.MediaTypes },
                 new AnimeTimetableEntry { Route = "untracked-tv", Title = "Unsaved anime", EpisodeNumber = 1, EpisodeDate = AirDate, AirType = "sub", MediaTypes = tv.MediaTypes, ImageVersionRoute = "anime/jpg/default/test.jpg" },
+                new AnimeTimetableEntry { Route = "untracked-tv", Title = "Unsaved anime", EpisodeNumber = 6, EpisodeDate = AirDate.AddDays(-35), AirType = "sub",
+                    MediaTypes = request.RequestUri.Query.Contains("week=" + System.Globalization.ISOWeek.GetWeekOfYear(AirDate.AddDays(-35).UtcDateTime) + "&") ? tv.MediaTypes : [], ImageVersionRoute = "anime/jpg/default/test.jpg" },
                 new AnimeTimetableEntry { Route = "another-tv", Title = "Another unsaved anime", EpisodeNumber = 1, EpisodeDate = AirDate, AirType = "sub", MediaTypes = tv.MediaTypes },
                 new AnimeTimetableEntry { Route = "today-tv", Title = "Today's anime", EpisodeNumber = 6, EpisodeDate = new DateTimeOffset(DateTime.Today.AddHours(12)), AirType = "sub", MediaTypes = tv.MediaTypes },
                 new AnimeTimetableEntry { Route = "untracked-ova", Title = "OVA", EpisodeNumber = 1, EpisodeDate = AirDate, AirType = "sub", MediaTypes = [new AnimeCategory { Route = "ova" }] }
@@ -546,7 +564,7 @@ sealed class FixtureHandler : HttpMessageHandler
         else if (path.EndsWith("/anime/123")) json = """{"title":"SIMKL TV","overview":"Trending synopsis.","total_episodes":12,"genres":["Adventure"]}""";
         else if (path.EndsWith("/untracked-tv")) json = JsonSerializer.Serialize(new AnimeDetails
         {
-            Route = "untracked-tv", Title = "Unsaved anime", Episodes = 12, MediaTypes = tv.MediaTypes
+            Route = "untracked-tv", Title = "Unsaved anime", Premier = AirDate.AddDays(-35), Episodes = 12, MediaTypes = tv.MediaTypes
         });
         else if (path.EndsWith("/today-tv")) json = JsonSerializer.Serialize(new AnimeDetails
         {

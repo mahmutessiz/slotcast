@@ -34,3 +34,5 @@ public sealed partial class HomeAnimeCard : CommunityToolkit.Mvvm.ComponentModel
             Overview = entry.DelayedText, SourceUrl = "https://animeschedule.net/anime/" + Uri.EscapeDataString(entry.Route) };
     }
 }
+
+public sealed record HomeFeedSnapshot(DateTime Date, string SeasonLabel, List<HomeAnimeCard> NewReleases, List<HomeAnimeCard> Trending, List<HomeAnimeCard> Upcoming, List<HomeAnimeCard> AiringToday, List<HomeAnimeCard> SeasonAnime, int SeasonPage, int SeasonTotal);
