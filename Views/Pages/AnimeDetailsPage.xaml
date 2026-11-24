@@ -7,7 +7,7 @@
     <Page.Resources><ResourceDictionary Source="AnimeStyles.xaml" /></Page.Resources>
     <ScrollViewer x:Name="DetailsScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
         <StackPanel Margin="0,12,16,24">
-            <ui:Button Content="‹ Back" Command="{Binding ViewModel.BackCommand}" Margin="0,0,0,20" />
+            <ui:Button Cursor="Hand" Content="‹ Back" Command="{Binding ViewModel.BackCommand}" Margin="0,0,0,20" />
             <TextBlock Text="{Binding ViewModel.ErrorMessage}" Style="{StaticResource ErrorText}" />
             <TextBlock Text="{Binding ViewModel.Workspace.ErrorMessage}" Style="{StaticResource ErrorText}" />
             <TextBlock Text="{Binding ViewModel.ActionMessage}" Style="{StaticResource ErrorText}" Foreground="#8DADFF" />
@@ -21,8 +21,8 @@
                     <TextBlock Text="{Binding ViewModel.Title}" FontSize="28" FontWeight="SemiBold" TextWrapping="Wrap" />
                     <TextBlock Text="{Binding ViewModel.Subtitle}" Style="{StaticResource Secondary}" Margin="0,10,0,20" />
                     <WrapPanel IsEnabled="{Binding ViewModel.Workspace.IsIdle}" Margin="0,0,0,24">
-                        <ui:Button Content="{Binding ViewModel.AddLabel}" ToolTip="Add to your library" Background="#567AEA" Foreground="White" Command="{Binding ViewModel.AddCommand}" Padding="16,8" />
-                        <ui:Button Content="{Binding ViewModel.SourceLabel}" Command="{Binding ViewModel.OpenExternalSourceCommand}" Margin="10,0,0,0" />
+                        <ui:Button Cursor="Hand" Content="{Binding ViewModel.AddLabel}" ToolTip="Add to your library" Background="#567AEA" Foreground="White" Command="{Binding ViewModel.AddCommand}" Padding="16,8" />
+                        <ui:Button Cursor="Hand" Content="{Binding ViewModel.SourceLabel}" Command="{Binding ViewModel.OpenExternalSourceCommand}" Margin="10,0,0,0" />
                     </WrapPanel>
                     <TextBlock Text="Genres" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding ViewModel.Genres}" Style="{StaticResource Secondary}" Margin="0,6,0,18" />

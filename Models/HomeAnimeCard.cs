@@ -1,6 +1,6 @@
 namespace SlotCast.Models;
 
-public sealed class HomeAnimeCard
+public sealed partial class HomeAnimeCard : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
 {
     public string Title { get; init; } = "";
     public string Subtitle { get; init; } = "";
@@ -8,11 +8,14 @@ public sealed class HomeAnimeCard
     public string SourceUrl { get; init; } = "";
     public int? SimklId { get; init; }
     public string? Overview { get; init; }
-    public AnimeDetails? Anime { get; init; }
+    public AnimeDetails? Anime { get; set; }
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty, CommunityToolkit.Mvvm.ComponentModel.NotifyPropertyChangedFor(nameof(ActionLabel))]
+    private bool _isInWatchlist;
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty] private List<AnimeDetails> _addCandidates = [];
     public DateTimeOffset? AirsAt { get; init; }
     public string OverviewText => string.IsNullOrWhiteSpace(Overview) ? ""
         : System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(Overview, "<[^>]+>", " ")).Trim();
-    public string ActionLabel => Anime is null ? "Find & add" : "+ Add anime";
+    public string ActionLabel => IsInWatchlist ? "In watchlist" : "Add to watchlist";
     public static HomeAnimeCard FromAnime(AnimeDetails anime) => new()
     {
         Title = anime.DisplayTitle, Subtitle = anime.Subtitle, PosterUrl = anime.PosterUrl,

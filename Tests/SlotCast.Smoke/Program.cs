@@ -206,7 +206,7 @@ Check(home.AiringToday.Count == 1 && home.AiringToday[0].AirsAt?.ToLocalTime().D
     && home.AiringToday[0].Anime?.Route == "today-tv", "Airing today contains only today's local TV-anime schedule");
 Check(home.Trending.Count == 1 && home.Trending[0].Anime is null, "Home uses public TV-only trending and requires explicit season matching");
 await home.AddFromHomeCommand.ExecuteAsync(home.NewReleases[0]);
-Check(vm.LibraryItems.Count == 1, "New releases can be added to saved library");
+Check(vm.LibraryItems.Count == 1 && home.NewReleases[0].IsInWatchlist, "New releases can be added and immediately show watchlist status");
 vm.ShowFullSchedule = true;
 if (vm.ChangeCalendarScopeCommand.ExecutionTask is { } fullLoad) await fullLoad;
 var fullSchedule = vm.CalendarDays.SelectMany(x => x.Episodes).ToList();
@@ -237,7 +237,7 @@ using (var emptyServices = CreateServices(Path.Combine(folder, "empty-library.db
         "Full schedule still excludes OVAs");
 }
 await home.AddFromHomeCommand.ExecuteAsync(home.Trending[0]);
-Check(vm.SearchQuery == home.Trending[0].Title && vm.SearchResults.Count == 1, "Trending card opens title search without guessing provider IDs");
+Check(home.Trending[0].IsInWatchlist && home.Trending[0].ActionLabel == "In watchlist", "Trending cards recognize titles already in the watchlist without navigating to search");
 var detailState = new AnimeDetailsState { Card = home.NewReleases[0] };
 var detailVm = new AnimeDetailsViewModel(detailState, api,
     new SimklService(new FixtureFactory(handler), fixtureConfig), vm);

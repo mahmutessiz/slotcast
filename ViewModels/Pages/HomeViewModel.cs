@@ -41,6 +41,7 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
         if (Credentials is { NeedsToken: false } && _credentialRevision != Credentials.Revision)
             await workspace.ReloadAfterImportAsync();
         await workspace.OnNavigatedToAsync();
+        UpdateWatchlistStates();
         if (DateTime.UtcNow - _loadedUtc > TimeSpan.FromHours(1) || _loadedDate != DateTime.Today
             || _loadedAirType != workspace.SelectedSchedule.Value || _credentialRevision != (Credentials?.Revision ?? 0)) await RefreshHomeAsync();
     }
@@ -107,7 +108,7 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
                 : "TV anime only · Choose a title to add it to your library";
             if (failed.Count > 0) ErrorMessage = Credentials?.NeedsToken == true ? "Add or replace your AnimeSchedule token above to load anime and schedules." : $"Could not refresh {string.Join(", ", failed)}. Try again when connected.";
         }
-        finally { IsBusy = false; }
+        finally { UpdateWatchlistStates(); IsBusy = false; }
     }
 
     [RelayCommand]
@@ -128,7 +129,7 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
             HasMoreSeasonAnime = _seasonPage * 18 < _seasonTotal;
         }
         catch (Exception ex) when (IsFeedError(ex)) { ErrorMessage = "Could not load more seasonal anime. Please try again."; }
-        finally { IsBusy = false; }
+        finally { UpdateWatchlistStates(); IsBusy = false; }
     }
 
     [RelayCommand]
@@ -138,27 +139,51 @@ public partial class HomeViewModel(AnimeScheduleService api, SimklService simkl,
         if (Credentials is { NeedsToken: false } && _credentialRevision != Credentials.Revision)
             await workspace.ReloadAfterImportAsync();
         await workspace.OnNavigatedToAsync();
-        if (card.Anime is not null)
+        UpdateWatchlistStates();
+        if (card.IsInWatchlist || IsBusy || !workspace.IsIdle) return;
+        IsBusy = true;
+        ErrorMessage = "";
+        ActionMessage = "";
+        try
         {
-            try
+            var anime = card.Anime;
+            if (anime is null)
             {
-                IsBusy = true;
-        _credentialRevision = Credentials?.Revision ?? 0;
-                // Timetable cards have lightweight metadata. Fetch the complete title before saving it.
-                var anime = card.AirsAt is null ? card.Anime : await api.DetailsAsync(card.Anime.Route);
-                await workspace.AddAnimeCommand.ExecuteAsync(anime);
-                ActionMessage = workspace.ErrorMessage.Length == 0 ? $"{card.Title} added to your library." : "";
+                var result = await api.SearchAsync(card.Title, 1);
+                var matches = result.Anime.Where(x => TitleMatches(card.Title, x.Title) || TitleMatches(card.Title, x.DisplayTitle)).DistinctBy(x => x.Route).ToList();
+                if (matches.Count != 1)
+                {
+                    card.AddCandidates = result.Anime;
+                    ActionMessage = result.Anime.Count == 0 ? "No matching TV anime found." : "Choose the matching title below this card to add it.";
+                    return;
+                }
+                anime = matches[0];
             }
-            catch (Exception ex) when (IsFeedError(ex)) { ErrorMessage = "Could not add this anime. Please try again when connected."; }
-            finally { IsBusy = false; }
+            anime = await api.DetailsAsync(anime.Route);
+            card.Anime = anime;
+            await workspace.AddAnimeCommand.ExecuteAsync(anime);
+            ActionMessage = workspace.ErrorMessage.Length == 0 ? $"{card.Title} added to your watchlist." : "";
         }
-        else
-        {
-            // Do not guess a cross-provider ID or season from a fuzzy title match.
-            workspace.SearchQuery = card.Title;
-            navigation?.Navigate(typeof(DiscoverPage));
-            await workspace.SearchCommand.ExecuteAsync(null);
-        }
+        catch (Exception ex) when (IsFeedError(ex)) { ErrorMessage = "Could not add this anime. Please try again when connected."; }
+        finally { UpdateWatchlistStates(); IsBusy = false; }
+    }
+
+    [RelayCommand]
+    private async Task AddHomeCandidateAsync(AnimeDetails? anime)
+    {
+        if (anime is null) return;
+        var card = Cards.FirstOrDefault(x => x.AddCandidates.Contains(anime));
+        if (card is null) return;
+        card.Anime = anime;
+        card.AddCandidates = [];
+        await AddFromHomeAsync(card);
+    }
+    private IEnumerable<HomeAnimeCard> Cards => AiringToday.Concat(SeasonAnime).Concat(NewReleases).Concat(Trending).Concat(Upcoming);
+    private static bool TitleMatches(string left, string right) => string.Equals(left.Trim(), right.Trim(), StringComparison.OrdinalIgnoreCase);
+    private void UpdateWatchlistStates()
+    {
+        foreach (var card in Cards)
+            card.IsInWatchlist = workspace.LibraryItems.Any(x => card.Anime is { } anime ? x.Route == anime.Route : TitleMatches(card.Title, x.Title) || TitleMatches(card.Title, x.OriginalTitle));
     }
 
     [RelayCommand]

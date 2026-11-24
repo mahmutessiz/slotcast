@@ -32,7 +32,7 @@
               <KeyBinding Key="Enter" Command="{Binding ViewModel.SearchCommand}" />
             </ui:TextBox.InputBindings>
           </ui:TextBox>
-          <ui:Button Grid.Column="1" Content="Search" Appearance="Primary" Background="#567AEA" Foreground="White" Command="{Binding ViewModel.SearchCommand}" />
+          <ui:Button Cursor="Hand" Grid.Column="1" Content="Search" Appearance="Primary" Background="#567AEA" Foreground="White" Command="{Binding ViewModel.SearchCommand}" />
         </Grid>
         <TextBlock Grid.Row="1" Text="{Binding ViewModel.SearchSummary}" Style="{StaticResource Secondary}" Margin="0,12" />
         <ListBox Grid.Row="2" ItemsSource="{Binding ViewModel.SearchResults}" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -53,16 +53,16 @@
                   <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Secondary}" Margin="0,6,0,0" />
                 </StackPanel>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                  <ui:Button Content="+" ToolTip="Add to library" Width="36" Appearance="Primary" Background="#567AEA" Foreground="White" Command="{Binding DataContext.ViewModel.AddAnimeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
-                  <ui:Button Content="Details" Margin="0,6,0,0" Command="{Binding DataContext.ViewModel.OpenAnimeDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                  <ui:Button Cursor="Hand" Content="+" ToolTip="Add to library" Width="36" Appearance="Primary" Background="#567AEA" Foreground="White" Command="{Binding DataContext.ViewModel.AddAnimeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                  <ui:Button Cursor="Hand" Content="Details" Margin="0,6,0,0" Command="{Binding DataContext.ViewModel.OpenAnimeDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                 </StackPanel>
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-          <ui:Button Content="Previous" Command="{Binding ViewModel.PreviousSearchCommand}" />
-          <ui:Button Content="Next" Command="{Binding ViewModel.NextSearchCommand}" Margin="8,0,0,0" />
+          <ui:Button Cursor="Hand" Content="Previous" Command="{Binding ViewModel.PreviousSearchCommand}" />
+          <ui:Button Cursor="Hand" Content="Next" Command="{Binding ViewModel.NextSearchCommand}" Margin="8,0,0,0" />
         </StackPanel>
       </Grid>
     </Grid>

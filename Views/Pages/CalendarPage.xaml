@@ -55,15 +55,15 @@
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
           <WrapPanel Margin="0,0,0,12">
-            <ui:Button Content="‹" Command="{Binding ViewModel.PreviousWeekCommand}" ToolTip="Previous week" Margin="0,0,8,8" VerticalAlignment="Center" />
+            <ui:Button Cursor="Hand" Content="‹" Command="{Binding ViewModel.PreviousWeekCommand}" ToolTip="Previous week" Margin="0,0,8,8" VerticalAlignment="Center" />
             <TextBlock Text="{Binding ViewModel.WeekLabel}" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0,12,8" />
-            <ui:Button Content="›" Command="{Binding ViewModel.NextWeekCommand}" ToolTip="Next week" Margin="0,0,8,8" VerticalAlignment="Center" />
-            <ui:Button Content="Today" Command="{Binding ViewModel.TodayCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
+            <ui:Button Cursor="Hand" Content="›" Command="{Binding ViewModel.NextWeekCommand}" ToolTip="Next week" Margin="0,0,8,8" VerticalAlignment="Center" />
+            <ui:Button Cursor="Hand" Content="Today" Command="{Binding ViewModel.TodayCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
             <ComboBox ItemsSource="{Binding ViewModel.CalendarScopes}" DisplayMemberPath="Label" SelectedValuePath="ShowAll" SelectedValue="{Binding ViewModel.ShowFullSchedule, Mode=TwoWay}" Width="165" Margin="0,0,8,8" ToolTip="Choose your library or the full TV-anime schedule" VerticalAlignment="Center" />
             <ComboBox ItemsSource="{Binding ViewModel.ScheduleChoices}" SelectedItem="{Binding ViewModel.SelectedSchedule}" Width="185" ToolTip="Subtitle schedules may fall back to Japanese broadcasts; each card labels its source." Margin="0,0,8,8" VerticalAlignment="Center" />
-            <ui:Button Content="Apply" Command="{Binding ViewModel.ChangeScheduleCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
-            <ui:Button Content="Refresh" Command="{Binding ViewModel.RefreshCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
-            <ui:Button ToolTip="Add anime" AutomationProperties.Name="Add anime" Appearance="Primary" Background="#567AEA" Foreground="White" Width="36" Height="32" MinWidth="0" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding ViewModel.DiscoverCommand}" Margin="0,0,8,8" VerticalAlignment="Center"><ui:SymbolIcon Symbol="Add16" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" /></ui:Button>
+            <ui:Button Cursor="Hand" Content="Apply" Command="{Binding ViewModel.ChangeScheduleCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
+            <ui:Button Cursor="Hand" Content="Refresh" Command="{Binding ViewModel.RefreshCommand}" Margin="0,0,8,8" VerticalAlignment="Center" />
+            <ui:Button Cursor="Hand" ToolTip="Add anime" AutomationProperties.Name="Add anime" Appearance="Primary" Background="#567AEA" Foreground="White" Width="36" Height="32" MinWidth="0" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding ViewModel.DiscoverCommand}" Margin="0,0,8,8" VerticalAlignment="Center"><ui:SymbolIcon Symbol="Add16" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" /></ui:Button>
           </WrapPanel>
           <ScrollViewer x:Name="WeekScroller" Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" CanContentScroll="False">
             <ItemsControl x:Name="WeekItems" ItemsSource="{Binding ViewModel.CalendarDays}" MinWidth="1680" Width="{Binding ViewportWidth, ElementName=WeekScroller}">
@@ -79,7 +79,7 @@
                       <RowDefinition Height="Auto" />
                       <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Button Style="{StaticResource DayButton}" Command="{Binding DataContext.ViewModel.SelectDayCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
+                    <Button Cursor="Hand" Style="{StaticResource DayButton}" Command="{Binding DataContext.ViewModel.SelectDayCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
                       <StackPanel>
                         <TextBlock Text="{Binding Date, StringFormat={}{0:ddd}}" FontSize="11" />
                         <TextBlock Text="{Binding Date, StringFormat={}{0:dd MMM}}" FontWeight="SemiBold" Margin="0,4,0,0" />
@@ -104,9 +104,9 @@
                                   <Border Grid.Column="1" Height="144" VerticalAlignment="Top" CornerRadius="4" Background="{DynamicResource CardStrokeColorDefaultBrush}" ToolTipService.InitialShowDelay="150" ToolTipService.ShowDuration="30000">
                                     <Border.ToolTip><ToolTip Content="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" ContentTemplate="{StaticResource EpisodePosterInfo}" /></Border.ToolTip>
                                     <Grid>
-                                      <TextBlock Text="No poster" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource Secondary}" />
+                                      <Button Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch" Command="{Binding DataContext.ViewModel.OpenCalendarDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" AutomationProperties.Name="View anime details"><Grid><TextBlock Text="No poster" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource Secondary}" />
                                       <Image Source="{Binding BannerUrl}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
-                                      <Button Style="{StaticResource PosterWatchButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4"
+                                      </Grid></Button><Button Cursor="Hand" Style="{StaticResource PosterWatchButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4"
                                               ToolTip="{Binding ActionLabel}" AutomationProperties.Name="{Binding ActionLabel}" IsEnabled="{Binding CanAct}"
                                               Command="{Binding DataContext.ViewModel.ToggleCalendarEpisodeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
                                         <ui:SymbolIcon FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center">

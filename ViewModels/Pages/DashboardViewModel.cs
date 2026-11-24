@@ -246,6 +246,13 @@ public partial class DashboardViewModel(AnimeScheduleService api, AnimeLibrarySe
                 MediaTypes = [new AnimeCategory { Route = "tv" }] }
         });
     }
+    [RelayCommand] private void OpenCalendarDetails(CalendarEpisode? episode)
+    {
+        if (episode is null) return;
+        detailsNavigation?.Open(new HomeAnimeCard { Title = episode.Title, PosterUrl = episode.BannerUrl,
+            SourceUrl = "https://animeschedule.net/anime/" + Uri.EscapeDataString(episode.Route),
+            Anime = new AnimeDetails { Route = episode.Route, Title = episode.Title } });
+    }
     [RelayCommand] private async Task ToggleCalendarEpisodeAsync(CalendarEpisode? episode)
     {
         if (episode is null) return;

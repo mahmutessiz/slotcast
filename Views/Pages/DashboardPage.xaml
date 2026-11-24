@@ -18,7 +18,7 @@
             <DataTemplate x:Key="AnimeCard">
                 <Border Width="174" Margin="0,0,16,16" Style="{StaticResource Panel}" Padding="0" VerticalAlignment="Top">
                     <StackPanel>
-                        <Button Padding="0" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch" ToolTipService.InitialShowDelay="150" ToolTipService.ShowDuration="30000"
+                        <Button Cursor="Hand" Padding="0" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch" ToolTipService.InitialShowDelay="150" ToolTipService.ShowDuration="30000"
                                 Command="{Binding DataContext.ViewModel.OpenCardDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
                             <Button.ToolTip><ToolTip Content="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" ContentTemplate="{StaticResource PosterInfo}" /></Button.ToolTip>
                             <Grid Height="232" Width="172" Background="{DynamicResource CardStrokeColorDefaultBrush}">
@@ -29,13 +29,16 @@
                         <StackPanel Margin="10">
                             <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Height="40" Margin="0,0,0,10" ToolTip="{Binding Title}" />
                             <DockPanel LastChildFill="True">
-                                <ui:Button DockPanel.Dock="Right" Content="Details" ToolTip="View anime details" Margin="4,0,0,0" Padding="8,4"
+                                <ui:Button Cursor="Hand" DockPanel.Dock="Right" Content="Details" ToolTip="View anime details" Margin="4,0,0,0" Padding="8,4"
                                            Command="{Binding DataContext.ViewModel.OpenCardDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
-                                <ui:Button ToolTip="{Binding ActionLabel}" AutomationProperties.Name="{Binding ActionLabel}" Width="32" Height="32" MinWidth="0" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="#567AEA" Foreground="White" Padding="0"
+                                <ui:Button Cursor="Hand" ToolTip="{Binding ActionLabel}" AutomationProperties.Name="{Binding ActionLabel}" Width="32" Height="32" MinWidth="0" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Foreground="White" Padding="0"
                                            Command="{Binding DataContext.ViewModel.AddFromHomeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
-                                    <ui:SymbolIcon Symbol="Add16" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <ui:Button.Style><Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}"><Setter Property="Background" Value="#567AEA" /><Style.Triggers><DataTrigger Binding="{Binding IsInWatchlist}" Value="True"><Setter Property="Background" Value="#287B52" /><Setter Property="IsEnabled" Value="False" /></DataTrigger></Style.Triggers></Style></ui:Button.Style>
+<ui:SymbolIcon FontSize="16"><ui:SymbolIcon.Style><Style TargetType="ui:SymbolIcon"><Setter Property="Symbol" Value="Add16" /><Style.Triggers><DataTrigger Binding="{Binding IsInWatchlist}" Value="True"><Setter Property="Symbol" Value="Checkmark16" /></DataTrigger></Style.Triggers></Style></ui:SymbolIcon.Style></ui:SymbolIcon>
                                 </ui:Button>
                             </DockPanel>
+<TextBlock Text="In watchlist" Foreground="#79C99A" Margin="0,6,0,0" Visibility="{Binding IsInWatchlist, Converter={StaticResource BoolVisibility}}" />
+<ItemsControl ItemsSource="{Binding AddCandidates}"><ItemsControl.ItemTemplate><DataTemplate><ui:Button Cursor="Hand" Content="{Binding DisplayTitle}" ToolTip="{Binding Subtitle}" Margin="0,6,0,0" Command="{Binding DataContext.ViewModel.AddHomeCandidateCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" /></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -62,7 +65,7 @@
             <ScrollViewer x:Name="HomeScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" PanningMode="VerticalOnly" IsEnabled="{Binding ViewModel.Workspace.IsIdle}">
                 <StackPanel Margin="0,0,12,0">
                     <DockPanel Margin="0,0,0,16">
-                        <ui:Button DockPanel.Dock="Right" Content="Refresh" Command="{Binding ViewModel.RefreshHomeCommand}" VerticalAlignment="Center" />
+                        <ui:Button Cursor="Hand" DockPanel.Dock="Right" Content="Refresh" Command="{Binding ViewModel.RefreshHomeCommand}" VerticalAlignment="Center" />
                         <StackPanel>
                             <TextBlock Text="Airing today" FontSize="24" FontWeight="SemiBold" />
                             <TextBlock Text="{Binding ViewModel.AiringTodayStatus}" Style="{StaticResource Secondary}" Margin="0,4,0,0" />
@@ -72,12 +75,12 @@
                     <TextBlock Text="{Binding ViewModel.CurrentSeasonLabel}" FontSize="24" FontWeight="SemiBold" Margin="0,28,0,4" />
                     <TextBlock Text="{Binding ViewModel.SeasonStatus}" Style="{StaticResource Secondary}" Margin="0,0,0,16" />
                     <ItemsControl ItemsSource="{Binding ViewModel.SeasonAnime}" ItemTemplate="{StaticResource AnimeCard}" ItemsPanel="{StaticResource PosterGrid}" />
-                    <ui:Button Content="Load more seasonal anime" Command="{Binding ViewModel.LoadMoreSeasonCommand}" Margin="0,4,0,8" Visibility="{Binding ViewModel.HasMoreSeasonAnime, Converter={StaticResource BoolVisibility}}" />
+                    <ui:Button Cursor="Hand" Content="Load more seasonal anime" Command="{Binding ViewModel.LoadMoreSeasonCommand}" Margin="0,4,0,8" Visibility="{Binding ViewModel.HasMoreSeasonAnime, Converter={StaticResource BoolVisibility}}" />
                     <TextBlock Text="New releases" FontSize="24" FontWeight="SemiBold" Margin="0,28,0,4" />
                     <TextBlock Text="Latest TV anime premieres" Style="{StaticResource Secondary}" Margin="0,0,0,16" />
                     <ItemsControl ItemsSource="{Binding ViewModel.NewReleases}" ItemTemplate="{StaticResource AnimeCard}" ItemsPanel="{StaticResource PosterGrid}" />
                     <TextBlock Text="Simkl Trending Today" FontSize="24" FontWeight="SemiBold" Margin="0,28,0,4" />
-                    <TextBlock Text="Most watched TV anime today. Find a title on AnimeSchedule to add the right season." Style="{StaticResource Secondary}" Margin="0,0,0,16" />
+                    <TextBlock Text="Most watched TV anime today. Add a title directly to your watchlist." Style="{StaticResource Secondary}" Margin="0,0,0,16" />
                     <ItemsControl ItemsSource="{Binding ViewModel.Trending}" ItemTemplate="{StaticResource AnimeCard}" ItemsPanel="{StaticResource PosterGrid}" />
                     <TextBlock Text="Coming soon" FontSize="24" FontWeight="SemiBold" Margin="0,28,0,4" />
                     <TextBlock Text="Upcoming TV anime premieres" Style="{StaticResource Secondary}" Margin="0,0,0,16" />
