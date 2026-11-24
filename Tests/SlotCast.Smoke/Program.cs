@@ -187,6 +187,7 @@ using (var reopened = CreateServices(database, handler))
     Check(!await db.WatchedEpisodes.AnyAsync(), "Removing anime cascades watched history");
 }
 handler.Offline = false;
+await vm.ReloadAfterImportAsync(); // Synchronize after the separate connection removed the saved anime.
 var fixtureConfig = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
     { ["Simkl:ClientId"] = "test-client" }).Build();
 var tokenUi = new ApiTokenViewModel(new AnimeScheduleCredentialService(new ConfigurationBuilder().Build(),

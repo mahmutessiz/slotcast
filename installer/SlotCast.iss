@@ -1,6 +1,6 @@
 ; Build from the project root with: .\scripts\build-installer.ps1
 #ifndef AppVersion
-  #define AppVersion "1.0.6"
+  #define AppVersion "1.0.7"
 #endif
 #ifndef PublishDir
   #define PublishDir SourcePath + "..\artifacts\publish\win-x64"
